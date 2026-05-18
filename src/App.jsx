@@ -77,7 +77,7 @@ function App() {
   const visiblePages = allPages.filter(p => p.roles.includes('*') || p.roles.includes(currentUser.peran));
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="h-screen flex flex-col overflow-hidden">
       <header className="bg-white border-b border-slate-200 px-4 py-3 flex items-center justify-between sticky top-0 z-20">
         <div className="flex items-center gap-3">
           <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-rose-500 to-rose-700 text-white flex items-center justify-center font-bold">LI</div>
@@ -89,8 +89,8 @@ function App() {
         <UserSwitcher currentUserId={store.currentUserId} setUser={setUser} />
       </header>
 
-      <div className="flex flex-1">
-        <aside className="bg-white border-r border-slate-200 w-56 hidden md:block">
+      <div className="flex flex-1 overflow-hidden">
+        <aside className="bg-white border-r border-slate-200 w-56 hidden md:flex flex-col justify-between overflow-y-auto">
           <nav className="p-3 space-y-1">
             {visiblePages.map(p => (
               <button key={p.id} onClick={() => { setPage(p.id); setSelectedTicketId(null); }}
@@ -114,9 +114,9 @@ function App() {
           ))}
         </div>
 
-        <main className="flex-1 p-4 md:p-6 pb-20 md:pb-6 overflow-x-hidden">
+        <main className="flex-1 p-4 md:p-6 pb-20 md:pb-6 overflow-x-hidden overflow-y-auto">
           {page === 'dashboard' && <Dashboard store={store} currentUser={currentUser} openTicket={openTicket} />}
-          {page === 'aduan'     && <DaftarAduan store={store} currentUser={currentUser} openTicket={openTicket} />}
+          {page === 'aduan'     && <DaftarAduan store={store} update={update} currentUser={currentUser} openTicket={openTicket} />}
           {page === 'tugas'     && <TugasSaya store={store} currentUser={currentUser} openTicket={openTicket} />}
           {page === 'baru'      && <FormBaru store={store} update={update} currentUser={currentUser} onCreated={openTicket} />}
           {page === 'detail'    && <DetailTiket store={store} update={update} ticketId={selectedTicketId} currentUser={currentUser} goBack={goBack} />}

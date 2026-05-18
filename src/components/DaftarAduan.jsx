@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
 import { KECAMATAN, STATUS, STATUS_COLORS, fmtTanggal } from '../data/constants';
 
-function DaftarAduan({ store, currentUser, openTicket }) {
+function DaftarAduan({ store, update, currentUser, openTicket }) {
   const defaultKec = (currentUser.peran === 'pic' || currentUser.peran === 'pj_kecamatan') ? currentUser.kecamatan : '';
   const [search, setSearch] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
   const [filterKategori, setFilterKategori] = useState('');
   const [filterKec, setFilterKec] = useState(defaultKec);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 100;
 
   const filtered = store.tickets.filter(t => {
     if (search && !`${t.judul} ${t.deskripsi} ${t.nomor} ${t.pelapor.nama}`.toLowerCase().includes(search.toLowerCase())) return false;
@@ -14,9 +16,39 @@ function DaftarAduan({ store, currentUser, openTicket }) {
     if (filterKategori && t.kategori !== filterKategori) return false;
     if (filterKec && t.kecamatan !== filterKec) return false;
     return true;
-  }).sort((a,b) => new Date(b.tanggal_masuk) - new Date(a.tanggal_masuk));
+  }).sort((a,b) => {
+    const noA = parseInt(a.nomor.split('-')[1] || 0);
+    const noB = parseInt(b.nomor.split('-')[1] || 0);
+    return noB - noA;
+  });
+
+  const totalPages = Math.ceil(filtered.length / itemsPerPage);
+  const paginatedTickets = filtered.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
+  const generatePageNumbers = () => {
+    const pages = [];
+    for (let i = 1; i <= totalPages; i++) {
+      if (i === 1 || i === totalPages || (i >= currentPage - 1 && i <= currentPage + 1)) {
+        pages.push(i);
+      } else if (i === currentPage - 2 || i === currentPage + 2) {
+        pages.push('...');
+      }
+    }
+    return pages.filter((p, i, arr) => p !== '...' || arr[i-1] !== '...');
+  };
 
   const lockKecamatan = (currentUser.peran === 'pic' || currentUser.peran === 'pj_kecamatan');
+  
+  const handleStatusChange = (e, ticketId) => {
+    e.stopPropagation();
+    const newStatus = e.target.value;
+    update(s => {
+      const tt = s.tickets.find(x => x.id === ticketId);
+      tt.status = newStatus;
+      tt.timeline.push({ id:`a-${Date.now()}`, tipe:'status_change', user:currentUser.id, desc:`Status diubah menjadi ${newStatus}`, ts:new Date().toISOString(), status:newStatus });
+      if (newStatus === 'SELESAI') tt.tanggal_selesai = new Date().toISOString();
+    });
+  };
 
   return (
     <div className="space-y-4">
@@ -40,33 +72,78 @@ function DaftarAduan({ store, currentUser, openTicket }) {
 
       <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
         <div className="hidden md:grid grid-cols-12 gap-2 px-4 py-2 text-xs uppercase font-semibold text-slate-500 bg-slate-50 border-b border-slate-200">
-          <div className="col-span-2">Nomor</div>
-          <div className="col-span-4">Judul</div>
+          <div className="col-span-1">Nomor</div>
+          <div className="col-span-2">Nama</div>
+          <div className="col-span-3">Judul</div>
           <div className="col-span-2">Lokasi</div>
           <div className="col-span-2">Status</div>
           <div className="col-span-2">Tanggal</div>
         </div>
         <div className="divide-y divide-slate-100">
-          {filtered.length === 0 && <div className="p-8 text-center text-slate-500">Tidak ada tiket yang cocok dengan filter.</div>}
-          {filtered.map(t => {
-            const overSla = !['Selesai','Ditutup'].includes(t.status) && new Date(t.sla_target) < new Date();
+          {paginatedTickets.length === 0 && <div className="p-8 text-center text-slate-500">Tidak ada tiket yang cocok dengan filter.</div>}
+          {paginatedTickets.map(t => {
+            const overSla = t.status !== 'SELESAI' && new Date(t.sla_target) < new Date();
             return (
-              <button key={t.id} onClick={() => openTicket(t.id)} className="w-full text-left grid grid-cols-1 md:grid-cols-12 gap-2 px-4 py-3 hover:bg-slate-50 items-center">
-                <div className="md:col-span-2 text-xs font-mono text-slate-500">{t.nomor}</div>
-                <div className="md:col-span-4">
-                  <div className="font-medium text-slate-800">{t.judul}</div>
-                  <div className="text-xs text-slate-500">{t.pelapor.nama} · {t.kanal}</div>
+              <div key={t.id} onClick={() => openTicket(t.id)} className="w-full text-left grid grid-cols-1 md:grid-cols-12 gap-2 px-4 py-3 hover:bg-slate-50 items-center cursor-pointer">
+                <div className="md:col-span-1 text-xs font-mono text-slate-500">{t.nomor}</div>
+                <div className="md:col-span-2 font-medium text-slate-800 truncate">{t.pelapor.nama}</div>
+                <div className="md:col-span-3">
+                  <div className="font-medium text-slate-800 line-clamp-1">{t.judul}</div>
+                  <div className="text-xs text-slate-500">{t.kanal}</div>
                 </div>
                 <div className="md:col-span-2 text-sm text-slate-600">{t.kecamatan}<br/><span className="text-xs text-slate-500">{t.kelurahan}</span></div>
-                <div className="md:col-span-2 flex flex-wrap gap-1">
-                  <span className={`pill ${STATUS_COLORS[t.status]}`}>{t.status}</span>
-                  {overSla && <span className="pill bg-rose-600 text-white">Lewat SLA</span>}
+                <div className="md:col-span-2 flex flex-col gap-1 items-start">
+                  <span className={`pill ${STATUS_COLORS[t.status] || 'bg-slate-100 text-slate-500'}`}>{t.status || 'KOSONG'}</span>
+                  <select 
+                    value={t.status} 
+                    onChange={(e) => handleStatusChange(e, t.id)}
+                    onClick={(e) => e.stopPropagation()}
+                    className="mt-1 text-xs px-2 py-1 border border-slate-200 rounded"
+                  >
+                    <option value="" disabled>Ubah...</option>
+                    {STATUS.map(s => <option key={s} value={s}>{s}</option>)}
+                  </select>
+                  {overSla && <span className="pill bg-rose-600 text-white mt-1">Lewat SLA</span>}
                 </div>
                 <div className="md:col-span-2 text-xs text-slate-500">{fmtTanggal(t.tanggal_masuk)}</div>
-              </button>
+              </div>
             );
           })}
         </div>
+        
+        {totalPages > 1 && (
+          <div className="px-4 py-3 border-t border-slate-200 flex items-center justify-between bg-slate-50">
+            <span className="text-sm text-slate-500">
+              Menampilkan halaman {currentPage} dari {totalPages}
+            </span>
+            <div className="flex items-center gap-1">
+              <button 
+                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                disabled={currentPage === 1}
+                className="px-2 py-1 bg-white border border-slate-200 rounded text-sm disabled:opacity-50 hover:bg-slate-50"
+              >
+                ‹
+              </button>
+              {generatePageNumbers().map((p, i) => (
+                p === '...' ? <span key={i} className="px-2 text-slate-400">...</span> :
+                <button 
+                  key={i} 
+                  onClick={() => setCurrentPage(p)} 
+                  className={`px-3 py-1 rounded border text-sm transition-colors ${currentPage === p ? 'bg-rose-600 text-white border-rose-600 font-semibold' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'}`}
+                >
+                  {p}
+                </button>
+              ))}
+              <button 
+                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                disabled={currentPage === totalPages}
+                className="px-2 py-1 bg-white border border-slate-200 rounded text-sm disabled:opacity-50 hover:bg-slate-50"
+              >
+                ›
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -22,15 +22,14 @@ export const KATEGORI = [
 ];
 
 
-export const STATUS = ['Baru','Triase','Verifikasi Lapangan','Diteruskan ke Dinas','Selesai','Ditutup'];
+export const STATUS = ['SURAT MASUK', 'DISURVEY', 'PENGERJAAN', 'SELESAI'];
 
 export const STATUS_COLORS = {
-  'Baru': 'bg-slate-100 text-slate-700',
-  'Triase': 'bg-blue-100 text-blue-700',
-  'Verifikasi Lapangan': 'bg-amber-100 text-amber-700',
-  'Diteruskan ke Dinas': 'bg-orange-100 text-orange-700',
-  'Selesai': 'bg-emerald-100 text-emerald-700',
-  'Ditutup': 'bg-slate-300 text-slate-800',
+  '': 'bg-slate-100 text-slate-500', // For empty status
+  'SURAT MASUK': 'bg-blue-100 text-blue-700',
+  'DISURVEY': 'bg-amber-100 text-amber-700',
+  'PENGERJAAN': 'bg-orange-100 text-orange-700',
+  'SELESAI': 'bg-emerald-100 text-emerald-700',
 };
 
 export const PRIORITAS = ['Rendah','Sedang','Tinggi','Kritis'];

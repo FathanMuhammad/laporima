@@ -1,18 +1,19 @@
 import React from 'react';
-import { USERS, KATEGORI, STATUS_COLORS, PRIORITAS_COLORS, fmtTanggal, fmtTanggalJam, canSeeSosmed, canSeePigura } from '../data/constants';
+import { USERS, KATEGORI, STATUS, STATUS_COLORS, PRIORITAS_COLORS, fmtTanggal, fmtTanggalJam, canSeeSosmed, canSeePigura } from '../data/constants';
 
 function DetailTiket({ store, update, ticketId, currentUser, goBack }) {
   const t = store.tickets.find(x => x.id === ticketId);
   if (!t) return <div>Tiket tidak ditemukan. <button onClick={goBack} className="text-rose-600 underline">Kembali</button></div>;
-  const kat = KATEGORI.find(k => k.id === t.kategori);
-  const overSla = !['Selesai','Ditutup'].includes(t.status) && new Date(t.sla_target) < new Date();
+  const kat = KATEGORI.find(k => k.id === t.kategori) || { nama: 'Tidak Diketahui' };
+  const overSla = !['SELESAI'].includes(t.status) && new Date(t.sla_target) < new Date();
 
   const updateStatus = (newStatus, desc) => {
     update(s => {
       const tt = s.tickets.find(x => x.id === ticketId);
       tt.status = newStatus;
+      if (!tt.timeline) tt.timeline = [];
       tt.timeline.push({ id:`a-${Date.now()}`, tipe:'status_change', user:currentUser.id, desc:`${newStatus} — ${desc||''}`, ts:new Date().toISOString(), status:newStatus });
-      if (newStatus === 'Selesai') tt.tanggal_selesai = new Date().toISOString();
+      if (newStatus === 'SELESAI') tt.tanggal_selesai = new Date().toISOString();
     });
   };
 
@@ -29,13 +30,13 @@ function DetailTiket({ store, update, ticketId, currentUser, goBack }) {
   const checkIn = () => {
     const finalize = (lat, lng) => {
       update(s => {
-        const tt = s.tickets.find(x => x.id === ticketId);
-        tt.koordinat = { lat, lng };
-        tt.timeline.push({ id:`a-${Date.now()}`, tipe:'checkin', user:currentUser.id, desc:`Check-in GPS di lokasi (${lat.toFixed(5)}, ${lng.toFixed(5)})`, ts:new Date().toISOString() });
-        if (tt.status === 'Triase' || tt.status === 'Baru') tt.status = 'Verifikasi Lapangan';
-      });
-      alert('Check-in GPS berhasil (menunggu approval Koordinator/PJ).');
-    };
+      const tt = s.tickets.find(x => x.id === ticketId);
+      tt.koordinat = { lat, lng };
+      if (!tt.timeline) tt.timeline = [];
+      tt.timeline.push({ id:`a-${Date.now()}`, tipe:'checkin', user:currentUser.id, desc:`Check-in GPS di lokasi (${lat.toFixed(5)}, ${lng.toFixed(5)})`, ts:new Date().toISOString() });
+    });
+    alert('Check-in GPS berhasil.');
+  };
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         pos => finalize(pos.coords.latitude, pos.coords.longitude),
@@ -52,6 +53,8 @@ function DetailTiket({ store, update, ticketId, currentUser, goBack }) {
     reader.onload = () => {
       update(s => {
         const tt = s.tickets.find(x => x.id === ticketId);
+        if (!tt.lampiran) tt.lampiran = [];
+        if (!tt.timeline) tt.timeline = [];
         tt.lampiran.push({ id:`l-${Date.now()}`, jenis, nama:file.name, dataUrl:reader.result, uploadedBy:currentUser.id, ts:new Date().toISOString() });
         tt.timeline.push({ id:`a-${Date.now()}`, tipe:'lampiran', user:currentUser.id, desc:`Foto ${jenis} diunggah: ${file.name}`, ts:new Date().toISOString() });
       });
@@ -63,6 +66,7 @@ function DetailTiket({ store, update, ticketId, currentUser, goBack }) {
     update(s => {
       const tt = s.tickets.find(x => x.id === ticketId);
       tt.status = 'Ditutup';
+      if (!tt.timeline) tt.timeline = [];
       tt.timeline.push({ id:`a-${Date.now()}`, tipe:'status_change', user:currentUser.id, desc:'Tiket ditutup, pelapor sudah dinotifikasi', ts:new Date().toISOString() });
     });
     alert('Tiket ditutup. Notifikasi (simulasi) terkirim ke pelapor.');
@@ -75,6 +79,7 @@ function DetailTiket({ store, update, ticketId, currentUser, goBack }) {
       if (tt.flag_pigura && !tt.pigura) {
         tt.pigura = { status:'disetujui', vendor:'', biaya:0, tanggal_pesan:null, tanggal_terima_vendor:null, tanggal_serah:null };
       }
+      if (!tt.timeline) tt.timeline = [];
       tt.timeline.push({ id:`a-${Date.now()}`, tipe:'note', user:currentUser.id, desc: tt.flag_pigura ? 'Ditandai untuk dibuatkan pigura' : 'Tanda pigura dibatalkan', ts:new Date().toISOString() });
     });
   };
@@ -84,6 +89,7 @@ function DetailTiket({ store, update, ticketId, currentUser, goBack }) {
       const tt = s.tickets.find(x => x.id === ticketId);
       if (!tt.sosmed) {
         tt.sosmed = { status:'draft', platform:[], caption:'', link:null, ts:new Date().toISOString() };
+        if (!tt.timeline) tt.timeline = [];
         tt.timeline.push({ id:`a-${Date.now()}`, tipe:'note', user:currentUser.id, desc:'Masuk antrian dokumentasi sosmed', ts:new Date().toISOString() });
       }
     });
@@ -109,25 +115,25 @@ function DetailTiket({ store, update, ticketId, currentUser, goBack }) {
             <div className="text-sm text-slate-600">{kat.nama} · {t.kecamatan} · {t.kelurahan}</div>
           </div>
           <div className="flex flex-wrap gap-2">
-            {canEdit && t.status === 'Baru' && ['koordinator','admin_kantor','pj_kecamatan'].includes(currentUser.peran) && (
+            {canEdit && ['koordinator','admin_kantor','pj_kecamatan'].includes(currentUser.peran) && (
               <select onChange={e => assignTo(e.target.value)} value="" className="px-3 py-1.5 border border-slate-200 rounded-lg text-sm">
                 <option value="" disabled>Tugaskan ke PIC...</option>
                 {USERS.filter(u => u.peran === 'pic').map(u => <option key={u.id} value={u.id}>{u.nama} ({u.kecamatan})</option>)}
               </select>
             )}
-            {canEdit && t.status === 'Verifikasi Lapangan' && (
-              <>
-                <button onClick={() => updateStatus('Selesai', 'Diselesaikan oleh tim internal')} className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-sm">✓ Selesai Internal</button>
-                <button onClick={() => updateStatus('Diteruskan ke Dinas', 'Surat ke OPD diteruskan')} className="px-3 py-1.5 bg-orange-600 hover:bg-orange-700 text-white rounded-lg text-sm">→ Eskalasi Dinas</button>
-              </>
+            
+            {canEdit && (
+              <select 
+                value={t.status || ''}
+                onChange={e => updateStatus(e.target.value, 'Diubah via detail')}
+                className="px-3 py-1.5 border border-slate-200 rounded-lg text-sm font-medium bg-slate-50"
+              >
+                <option value="" disabled>Ubah Status...</option>
+                {STATUS.map(s => <option key={s} value={s}>{s}</option>)}
+              </select>
             )}
-            {canEdit && t.status === 'Diteruskan ke Dinas' && (
-              <button onClick={() => updateStatus('Selesai', 'Dinas sudah menindaklanjuti')} className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-sm">✓ Dinas Selesai</button>
-            )}
-            {t.status === 'Selesai' && canEdit && (
-              <button onClick={tutupTiket} className="px-3 py-1.5 bg-slate-600 hover:bg-slate-700 text-white rounded-lg text-sm">Tutup Tiket</button>
-            )}
-            {(currentUser.peran === 'pic' || currentUser.peran === 'pj_kecamatan') && ['Triase','Verifikasi Lapangan','Baru'].includes(t.status) && (
+
+            {(currentUser.peran === 'pic' || currentUser.peran === 'pj_kecamatan') && (
               <button onClick={checkIn} className="px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-sm">📍 Check-in GPS</button>
             )}
             {['koordinator','admin_kantor','owner'].includes(currentUser.peran) && (
@@ -178,7 +184,7 @@ function DetailTiket({ store, update, ticketId, currentUser, goBack }) {
                 </div>
               )}
             </div>
-            {t.lampiran.length === 0 ? (
+            {!(t.lampiran && t.lampiran.length > 0) ? (
               <div className="text-sm text-slate-500 italic">Belum ada foto. Klik tombol di atas untuk upload.</div>
             ) : (
               <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
@@ -198,7 +204,7 @@ function DetailTiket({ store, update, ticketId, currentUser, goBack }) {
           <div className="bg-white rounded-xl border border-slate-200 p-4">
             <h3 className="font-semibold text-slate-800 mb-3">Riwayat Aksi</h3>
             <ol className="space-y-3 border-l-2 border-slate-200 pl-4">
-              {t.timeline.slice().reverse().map(a => {
+              {(t.timeline || []).slice().reverse().map(a => {
                 const u = USERS.find(x => x.id === a.user);
                 return (
                   <li key={a.id} className="relative">
@@ -213,7 +219,7 @@ function DetailTiket({ store, update, ticketId, currentUser, goBack }) {
         </div>
 
         <div className="space-y-4">
-          {sosmedVisible && (t.status === 'Selesai' || t.status === 'Ditutup' || t.sosmed) && (
+          {sosmedVisible && (t.status === 'SELESAI' || t.sosmed) && (
             <div className="bg-white rounded-xl border border-slate-200 p-4">
               <h3 className="font-semibold text-slate-800 mb-2 flex items-center gap-2">📱 Dokumentasi Sosmed</h3>
               {!t.sosmed ? (

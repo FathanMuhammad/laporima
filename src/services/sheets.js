@@ -41,9 +41,7 @@ function mapRowToTicket(row) {
   }
 
   // Format status
-  let status = row.STATUS || 'Baru';
-  status = status.toUpperCase() === 'SELESAI' ? 'Selesai' : status;
-  status = status.toUpperCase() === 'TRIASE' ? 'Triase' : status;
+  let status = row.STATUS ? row.STATUS.toUpperCase() : '';
 
   // Special rule from prompt: if "meninggal" or "kematian" is present, it's categorized as Air Mineral (Sosial)
   const bantuanText = row.BANTUAN || '';
@@ -72,7 +70,7 @@ function mapRowToTicket(row) {
     koordinat: extra.koordinat || null,
     tanggal_masuk: extra.tanggal_masuk || new Date().toISOString(),
     sla_target: extra.sla_target || new Date(new Date().setDate(new Date().getDate() + 14)).toISOString(),
-    tanggal_selesai: status === 'Selesai' ? (extra.tanggal_selesai || new Date().toISOString()) : null,
+    tanggal_selesai: status === 'SELESAI' ? (extra.tanggal_selesai || new Date().toISOString()) : null,
     assignee: row.DINAS || extra.assignee || null,
     pencatat: extra.pencatat || 'admin',
     timeline: extra.timeline || [],

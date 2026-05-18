@@ -44,9 +44,9 @@ function Dashboard({ store, currentUser, openTicket }) {
   }
 
   const masukBulanIni = scoped.filter(t => new Date(t.tanggal_masuk) >= startOfMonth).length;
-  const aktif = scoped.filter(t => !['Selesai','Ditutup'].includes(t.status)).length;
-  const selesai = scoped.filter(t => ['Selesai','Ditutup'].includes(t.status)).length;
-  const lewatSLA = scoped.filter(t => !['Selesai','Ditutup'].includes(t.status) && new Date(t.sla_target) < today).length;
+  const aktif = scoped.filter(t => t.status !== 'SELESAI').length;
+  const selesai = scoped.filter(t => t.status === 'SELESAI').length;
+  const lewatSLA = scoped.filter(t => t.status !== 'SELESAI' && new Date(t.sla_target) < today).length;
 
   const sosmedPosted = scoped.filter(t => t.sosmed && t.sosmed.status === 'posted').length;
   const sosmedAntri  = scoped.filter(t => t.sosmed && ['draft','review'].includes(t.sosmed.status)).length;
@@ -59,10 +59,14 @@ function Dashboard({ store, currentUser, openTicket }) {
 
   const byKecamatan = KECAMATAN.map(k => ({
     nama: k, count: scoped.filter(t => t.kecamatan === k).length,
-    selesai: scoped.filter(t => t.kecamatan === k && ['Selesai','Ditutup'].includes(t.status)).length,
+    selesai: scoped.filter(t => t.kecamatan === k && t.status === 'SELESAI').length,
   }));
 
-  const recent = [...scoped].sort((a,b) => new Date(b.tanggal_masuk) - new Date(a.tanggal_masuk)).slice(0,6);
+  const recent = [...scoped].sort((a,b) => {
+    const noA = parseInt(a.nomor.split('-')[1] || 0);
+    const noB = parseInt(b.nomor.split('-')[1] || 0);
+    return noB - noA;
+  }).slice(0,6);
 
   const showSosmedKPI = canSeeSosmed(currentUser.peran);
   const showPiguraKPI = canSeePigura(currentUser.peran);
