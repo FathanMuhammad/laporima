@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { loadStore, saveStore } from './services/sheets';
+import { loadStore, saveStore, updateSingleTicket } from './services/sheets';
 import { USERS, isOffice, isField } from './data/constants';
 
 import UserSwitcher from './components/UserSwitcher';
@@ -8,7 +8,6 @@ import DaftarAduan from './components/DaftarAduan';
 import TugasSaya from './components/TugasSaya';
 import FormBaru from './components/FormBaru';
 import DetailTiket from './components/DetailTiket';
-import PoinSaya from './components/PoinSaya';
 import AntrianSosmed from './components/AntrianSosmed';
 import AntrianPigura from './components/AntrianPigura';
 import BotSimulator from './components/BotSimulator';
@@ -28,13 +27,33 @@ function App() {
     if (store) saveStore(store); 
   }, [store]);
 
-  if (!store) return <div className="p-8 text-center">Loading data...</div>;
+  if (!store) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50">
+        <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-rose-500 to-rose-700 text-white flex items-center justify-center font-bold text-2xl shadow-lg mb-4 animate-pulse">
+          LI
+        </div>
+        <div className="font-bold text-2xl text-slate-800 tracking-tight">LaporIma</div>
+        <div className="text-sm text-slate-500 mt-2">Memuat data...</div>
+      </div>
+    );
+  }
 
   const currentUser = USERS.find(u => u.id === store.currentUserId) || USERS[0];
 
   const update = (mutator) => setStore(s => {
     const n = JSON.parse(JSON.stringify(s));
     mutator(n);
+    
+    // Compare old state and new state to find modified tickets
+    // This allows us to sync individual rows to Google Sheets
+    const modifiedTickets = n.tickets.filter(newT => {
+      const oldT = s.tickets.find(x => x.id === newT.id);
+      return JSON.stringify(newT) !== JSON.stringify(oldT);
+    });
+    
+    modifiedTickets.forEach(t => updateSingleTicket(t));
+    
     return n;
   });
 
@@ -50,7 +69,6 @@ function App() {
     { id:'aduan',     label:'Daftar Aduan',    icon:'📋', roles:['*'] },
     { id:'tugas',     label:'Tugas Saya',      icon:'✅', roles:['pic','pj_kecamatan','koordinator','lo_dinas','admin_kantor'] },
     { id:'baru',      label:'Tiket Baru',      icon:'➕', roles:['admin_kantor','pic','pj_kecamatan','koordinator','lo_dinas'] },
-    { id:'poin',      label:'Poin & Insentif', icon:'⭐', roles:['*'] },
     { id:'sosmed',    label:'Antrian Sosmed',  icon:'📱', roles:['sosmed','koordinator','admin_kantor','owner','super_admin'] },
     { id:'pigura',    label:'Antrian Pigura',  icon:'🖼️', roles:['pigura','koordinator','admin_kantor','owner','super_admin'] },
     { id:'bot',       label:'Bot WA Simulator',icon:'🤖', roles:['admin_kantor','koordinator','owner','super_admin'] },
@@ -60,17 +78,6 @@ function App() {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <div className="demo-banner border-b border-amber-300 px-4 py-2 text-sm flex items-center justify-between">
-        <div>
-          <strong>PROTOTYPE DEMO</strong> · Data tersimpan di browser ini saja.
-          <span className="hidden sm:inline ml-2 text-slate-600">Ganti user di pojok kanan atas untuk simulasi peran berbeda.</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <button onClick={() => setShowHelp(true)} className="text-amber-800 hover:underline">Panduan</button>
-          <button onClick={() => { if(confirm('Reset semua data prototype ke contoh awal?')) resetData(); }} className="text-rose-700 hover:underline">Reset</button>
-        </div>
-      </div>
-
       <header className="bg-white border-b border-slate-200 px-4 py-3 flex items-center justify-between sticky top-0 z-20">
         <div className="flex items-center gap-3">
           <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-rose-500 to-rose-700 text-white flex items-center justify-center font-bold">LI</div>
@@ -113,7 +120,6 @@ function App() {
           {page === 'tugas'     && <TugasSaya store={store} currentUser={currentUser} openTicket={openTicket} />}
           {page === 'baru'      && <FormBaru store={store} update={update} currentUser={currentUser} onCreated={openTicket} />}
           {page === 'detail'    && <DetailTiket store={store} update={update} ticketId={selectedTicketId} currentUser={currentUser} goBack={goBack} />}
-          {page === 'poin'      && <PoinSaya store={store} update={update} currentUser={currentUser} />}
           {page === 'sosmed'    && <AntrianSosmed store={store} update={update} currentUser={currentUser} openTicket={openTicket} />}
           {page === 'pigura'    && <AntrianPigura store={store} update={update} currentUser={currentUser} openTicket={openTicket} />}
           {page === 'bot'       && <BotSimulator store={store} update={update} currentUser={currentUser} openTicket={openTicket} />}

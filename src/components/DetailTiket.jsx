@@ -1,5 +1,5 @@
 import React from 'react';
-import { USERS, KATEGORI, STATUS_COLORS, PRIORITAS_COLORS, ATURAN_POIN, fmtTanggal, fmtTanggalJam, canApprovePoin, canSeeSosmed, canSeePigura } from '../data/constants';
+import { USERS, KATEGORI, STATUS_COLORS, PRIORITAS_COLORS, fmtTanggal, fmtTanggalJam, canSeeSosmed, canSeePigura } from '../data/constants';
 
 function DetailTiket({ store, update, ticketId, currentUser, goBack }) {
   const t = store.tickets.find(x => x.id === ticketId);
@@ -33,9 +33,8 @@ function DetailTiket({ store, update, ticketId, currentUser, goBack }) {
         tt.koordinat = { lat, lng };
         tt.timeline.push({ id:`a-${Date.now()}`, tipe:'checkin', user:currentUser.id, desc:`Check-in GPS di lokasi (${lat.toFixed(5)}, ${lng.toFixed(5)})`, ts:new Date().toISOString() });
         if (tt.status === 'Triase' || tt.status === 'Baru') tt.status = 'Verifikasi Lapangan';
-        tt.poinList.push({ user: currentUser.id, kode:'verifikasi', poin: Math.round(5 * kat.multiplier), ts: new Date().toISOString(), status:'pending' });
       });
-      alert('Check-in GPS berhasil & 5 poin tercatat (status pending — menunggu approval Koordinator/PJ).');
+      alert('Check-in GPS berhasil (menunggu approval Koordinator/PJ).');
     };
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
@@ -91,8 +90,6 @@ function DetailTiket({ store, update, ticketId, currentUser, goBack }) {
   };
 
   const canEdit = ['koordinator','pic','pj_kecamatan','admin_kantor','lo_dinas','super_admin'].includes(currentUser.peran);
-  const canApprove = canApprovePoin(currentUser.peran);
-  const totalPoin = t.poinList.reduce((a,p) => a + p.poin, 0);
   const sosmedVisible = canSeeSosmed(currentUser.peran);
 
   return (
@@ -216,38 +213,6 @@ function DetailTiket({ store, update, ticketId, currentUser, goBack }) {
         </div>
 
         <div className="space-y-4">
-          <div className="bg-white rounded-xl border border-slate-200 p-4">
-            <h3 className="font-semibold text-slate-800 mb-2 flex items-center gap-2">⭐ Poin Tiket</h3>
-            <div className="text-3xl font-bold text-rose-600">{totalPoin}</div>
-            <div className="text-xs text-slate-500 mb-3">total poin terhitung</div>
-            {t.poinList.length === 0 ? (
-              <div className="text-xs text-slate-500 italic">Belum ada poin tercatat.</div>
-            ) : (
-              <div className="space-y-1.5">
-                {t.poinList.map((p, i) => {
-                  const aturan = ATURAN_POIN.find(a => a.kode === p.kode);
-                  const u = USERS.find(x => x.id === p.user);
-                  return (
-                    <div key={i} className="flex items-center justify-between p-2 bg-slate-50 rounded text-xs">
-                      <div>
-                        <div className="font-medium">{aturan?.label}</div>
-                        <div className="text-slate-500">{u?.nama} · {p.status}</div>
-                      </div>
-                      <div className={`font-bold ${p.status==='approved'?'text-emerald-600':'text-amber-600'}`}>+{p.poin}</div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-            {canApprove && t.poinList.some(p => p.status === 'pending') && (
-              <button onClick={() => update(s => {
-                const tt = s.tickets.find(x => x.id === ticketId);
-                tt.poinList.forEach(p => { if (p.status === 'pending') p.status = 'approved'; });
-                tt.timeline.push({ id:`a-${Date.now()}`, tipe:'note', user:currentUser.id, desc:'Approve seluruh poin pending tiket ini', ts:new Date().toISOString() });
-              })} className="mt-3 w-full py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded text-sm">Approve semua poin pending</button>
-            )}
-          </div>
-
           {sosmedVisible && (t.status === 'Selesai' || t.status === 'Ditutup' || t.sosmed) && (
             <div className="bg-white rounded-xl border border-slate-200 p-4">
               <h3 className="font-semibold text-slate-800 mb-2 flex items-center gap-2">📱 Dokumentasi Sosmed</h3>
