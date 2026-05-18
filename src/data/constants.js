@@ -21,12 +21,6 @@ export const KATEGORI = [
   { id:'lain',      nama:'Lain-lain',                 sla:14, multiplier:1.0 },
 ];
 
-export const ATURAN_POIN = [
-  { kode:'verifikasi',       label:'Verifikasi lapangan (GPS + foto)', poin:5 },
-  { kode:'selesai_internal', label:'Aduan diselesaikan internal',       poin:15 },
-  { kode:'eskalasi_dinas',   label:'Aduan eskalasi & dinas menindaklanjuti', poin:20 },
-  { kode:'foto_lengkap',     label:'Bonus foto before/after lengkap',  poin:5 },
-];
 
 export const STATUS = ['Baru','Triase','Verifikasi Lapangan','Diteruskan ke Dinas','Selesai','Ditutup'];
 
@@ -83,7 +77,6 @@ export const isOffice = (peran) => OFFICE_TIER.includes(peran);
 export const isField  = (peran) => FIELD_TIER.includes(peran);
 export const canSeeSosmed  = (peran) => ['owner','koordinator','admin_kantor','sosmed','super_admin'].includes(peran);
 export const canSeePigura  = (peran) => ['owner','koordinator','admin_kantor','pigura','super_admin'].includes(peran);
-export const canApprovePoin = (peran) => ['koordinator','admin_kantor','owner','super_admin','pj_kecamatan'].includes(peran);
 
 export const fmtTanggal = (d) => new Date(d).toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'});
 export const fmtTanggalJam = (d) => new Date(d).toLocaleString('id-ID',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});
