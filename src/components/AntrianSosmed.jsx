@@ -2,7 +2,24 @@ import React from 'react';
 import { fmtTanggal } from '../data/constants';
 
 function AntrianSosmed({ store, update, currentUser, openTicket }) {
-  const queue = store.tickets.filter(t => t.sosmed);
+  const queue = store.tickets
+    .filter(t => t.status === 'SURAT MASUK' || t.sosmed)
+    .map(t => {
+      if (!t.sosmed) {
+        return {
+          ...t,
+          sosmed: {
+            status: 'draft',
+            platform: [],
+            caption: '',
+            link: null,
+            ts: t.tanggal_masuk
+          }
+        };
+      }
+      return t;
+    });
+
   const draft = queue.filter(t => t.sosmed.status === 'draft');
   const review = queue.filter(t => t.sosmed.status === 'review');
   const posted = queue.filter(t => t.sosmed.status === 'posted');
@@ -10,7 +27,11 @@ function AntrianSosmed({ store, update, currentUser, openTicket }) {
   const submitDraft = (ticketId, fields) => {
     update(s => {
       const t = s.tickets.find(x => x.id === ticketId);
+      if (!t.sosmed) {
+        t.sosmed = { status: 'draft', platform: [], caption: '', link: null, ts: new Date().toISOString() };
+      }
       Object.assign(t.sosmed, fields, { status:'review' });
+      if (!t.timeline) t.timeline = [];
       t.timeline.push({ id:`a-${Date.now()}`, tipe:'note', user:currentUser.id, desc:'Submit konten sosmed untuk approval', ts:new Date().toISOString() });
     });
   };
@@ -18,9 +39,13 @@ function AntrianSosmed({ store, update, currentUser, openTicket }) {
   const approve = (ticketId) => {
     update(s => {
       const t = s.tickets.find(x => x.id === ticketId);
+      if (!t.sosmed) {
+        t.sosmed = { status: 'draft', platform: [], caption: '', link: null, ts: new Date().toISOString() };
+      }
       t.sosmed.status = 'posted';
       t.sosmed.approver = currentUser.id;
       t.sosmed.link = t.sosmed.link || `https://instagram.com/p/${Math.random().toString(36).substr(2,9)}`;
+      if (!t.timeline) t.timeline = [];
       t.timeline.push({ id:`a-${Date.now()}`, tipe:'note', user:currentUser.id, desc:'Approve & posting konten sosmed', ts:new Date().toISOString() });
     });
   };

@@ -46,10 +46,16 @@ function Dashboard({ store, currentUser, openTicket }) {
   const masukBulanIni = scoped.filter(t => new Date(t.tanggal_masuk) >= startOfMonth).length;
   const aktif = scoped.filter(t => t.status !== 'SELESAI').length;
   const selesai = scoped.filter(t => t.status === 'SELESAI').length;
-  const lewatSLA = scoped.filter(t => t.status !== 'SELESAI' && new Date(t.sla_target) < today).length;
 
-  const sosmedPosted = scoped.filter(t => t.sosmed && t.sosmed.status === 'posted').length;
-  const sosmedAntri  = scoped.filter(t => t.sosmed && ['draft','review'].includes(t.sosmed.status)).length;
+  const sosmedTickets = scoped.map(t => {
+    if (!t.sosmed && t.status === 'SURAT MASUK') {
+      return { ...t, sosmed: { status: 'draft' } };
+    }
+    return t;
+  }).filter(t => t.sosmed);
+
+  const sosmedPosted = sosmedTickets.filter(t => t.sosmed.status === 'posted').length;
+  const sosmedAntri  = sosmedTickets.filter(t => ['draft','review'].includes(t.sosmed.status)).length;
   const piguraTotal  = scoped.filter(t => t.flag_pigura).length;
   const piguraSerah  = scoped.filter(t => t.pigura && t.pigura.status === 'diserahkan').length;
 
@@ -71,6 +77,9 @@ function Dashboard({ store, currentUser, openTicket }) {
   const showSosmedKPI = canSeeSosmed(currentUser.peran);
   const showPiguraKPI = canSeePigura(currentUser.peran);
 
+  const totalKpis = 3 + (showSosmedKPI ? 1 : 0) + (showPiguraKPI ? 1 : 0);
+  const gridColsClass = totalKpis === 3 ? 'md:grid-cols-3' : totalKpis === 4 ? 'md:grid-cols-4' : 'md:grid-cols-5';
+
   const stats = STATUS.map(s => scoped.filter(t => t.status === s).length);
 
   return (
@@ -88,11 +97,10 @@ function Dashboard({ store, currentUser, openTicket }) {
         )}
       </div>
 
-      <div className={`grid grid-cols-2 ${showSosmedKPI ? 'md:grid-cols-6' : 'md:grid-cols-4'} gap-3`}>
+      <div className={`grid grid-cols-2 ${gridColsClass} gap-3`}>
         <Kpi label="Masuk Bulan Ini" value={masukBulanIni} accent="rose" sub="aduan baru" />
         <Kpi label="Sedang Ditangani" value={aktif} accent="amber" sub="dalam progres" />
         <Kpi label="Sudah Selesai" value={selesai} accent="emerald" sub="semua waktu" />
-        <Kpi label="Lewat SLA" value={lewatSLA} accent="rose" sub="perlu perhatian" />
         {showSosmedKPI && <Kpi label="Konten Posted" value={sosmedPosted} accent="pink" sub={`${sosmedAntri} antri`} />}
         {showPiguraKPI && <Kpi label="Pigura Selesai" value={piguraSerah} accent="violet" sub={`${piguraTotal} total`} />}
       </div>

@@ -219,24 +219,27 @@ function DetailTiket({ store, update, ticketId, currentUser, goBack }) {
         </div>
 
         <div className="space-y-4">
-          {sosmedVisible && (t.status === 'SELESAI' || t.sosmed) && (
-            <div className="bg-white rounded-xl border border-slate-200 p-4">
-              <h3 className="font-semibold text-slate-800 mb-2 flex items-center gap-2">📱 Dokumentasi Sosmed</h3>
-              {!t.sosmed ? (
-                ['koordinator','sosmed','admin_kantor','owner'].includes(currentUser.peran) ? (
-                  <button onClick={eskalasiSosmed} className="w-full py-1.5 bg-pink-600 hover:bg-pink-700 text-white rounded text-sm">Tambahkan ke Antrian Sosmed</button>
+          {(() => {
+            const sosmedData = t.sosmed || (t.status === 'SURAT MASUK' ? { status:'draft', platform:[], caption:'', link:null } : null);
+            return sosmedVisible && (t.status === 'SELESAI' || t.status === 'SURAT MASUK' || t.sosmed) && (
+              <div className="bg-white rounded-xl border border-slate-200 p-4">
+                <h3 className="font-semibold text-slate-800 mb-2 flex items-center gap-2">📱 Dokumentasi Sosmed</h3>
+                {!sosmedData ? (
+                  ['koordinator','sosmed','admin_kantor','owner'].includes(currentUser.peran) ? (
+                    <button onClick={eskalasiSosmed} className="w-full py-1.5 bg-pink-600 hover:bg-pink-700 text-white rounded text-sm">Tambahkan ke Antrian Sosmed</button>
+                  ) : (
+                    <div className="text-xs text-slate-500 italic">Belum masuk antrian sosmed.</div>
+                  )
                 ) : (
-                  <div className="text-xs text-slate-500 italic">Belum masuk antrian sosmed.</div>
-                )
-              ) : (
-                <div className="space-y-1.5 text-xs">
-                  <div><span className="text-slate-500">Status: </span><span className="font-medium uppercase">{t.sosmed.status}</span></div>
-                  {t.sosmed.platform?.length > 0 && <div><span className="text-slate-500">Platform: </span>{t.sosmed.platform.join(', ')}</div>}
-                  {t.sosmed.link && <div><a href={t.sosmed.link} target="_blank" rel="noreferrer" className="text-pink-600 hover:underline">Lihat postingan ↗</a></div>}
-                </div>
-              )}
-            </div>
-          )}
+                  <div className="space-y-1.5 text-xs">
+                    <div><span className="text-slate-500">Status: </span><span className="font-medium uppercase">{sosmedData.status}</span></div>
+                    {sosmedData.platform?.length > 0 && <div><span className="text-slate-500">Platform: </span>{sosmedData.platform.join(', ')}</div>}
+                    {sosmedData.link && <div><a href={sosmedData.link} target="_blank" rel="noreferrer" className="text-pink-600 hover:underline">Lihat postingan ↗</a></div>}
+                  </div>
+                )}
+              </div>
+            );
+          })()}
 
           {canSeePigura(currentUser.peran) && t.flag_pigura && t.pigura && (
             <div className="bg-white rounded-xl border border-slate-200 p-4">
