@@ -1,5 +1,5 @@
 import React from 'react';
-import { USERS, KATEGORI, STATUS, STATUS_COLORS, PRIORITAS_COLORS, fmtTanggal, fmtTanggalJam, canSeeSosmed, canSeePigura } from '../data/constants';
+import { USERS, KATEGORI, STATUS, STATUS_COLORS, PRIORITAS_COLORS, fmtTanggal, fmtTanggalJam, canSeeSosmed, canSeePigura, DINAS_LIST } from '../data/constants';
 
 function DetailTiket({ store, update, ticketId, currentUser, goBack }) {
   const t = store.tickets.find(x => x.id === ticketId);
@@ -17,13 +17,12 @@ function DetailTiket({ store, update, ticketId, currentUser, goBack }) {
     });
   };
 
-  const assignTo = (userId) => {
+  const assignTo = (dinasName) => {
     update(s => {
       const tt = s.tickets.find(x => x.id === ticketId);
-      tt.assignee = userId;
-      const u = USERS.find(u => u.id === userId);
-      tt.timeline.push({ id:`a-${Date.now()}`, tipe:'assign', user:currentUser.id, desc:`Di-assign ke ${u.nama}`, ts:new Date().toISOString() });
-      if (tt.status === 'Baru') tt.status = 'Triase';
+      tt.assignee = dinasName;
+      if (!tt.timeline) tt.timeline = [];
+      tt.timeline.push({ id:`a-${Date.now()}`, tipe:'assign', user:currentUser.id, desc:`Diteruskan ke Dinas: ${dinasName}`, ts:new Date().toISOString() });
     });
   };
 
@@ -117,8 +116,8 @@ function DetailTiket({ store, update, ticketId, currentUser, goBack }) {
           <div className="flex flex-wrap gap-2">
             {canEdit && ['koordinator','admin_kantor','pj_kecamatan'].includes(currentUser.peran) && (
               <select onChange={e => assignTo(e.target.value)} value="" className="px-3 py-1.5 border border-slate-200 rounded-lg text-sm">
-                <option value="" disabled>Tugaskan ke PIC...</option>
-                {USERS.filter(u => u.peran === 'pic').map(u => <option key={u.id} value={u.id}>{u.nama} ({u.kecamatan})</option>)}
+                <option value="" disabled>Tugaskan ke Dinas...</option>
+                {DINAS_LIST.map(d => <option key={d} value={d}>{d}</option>)}
               </select>
             )}
             
@@ -152,11 +151,11 @@ function DetailTiket({ store, update, ticketId, currentUser, goBack }) {
             <p className="text-slate-700 text-sm">{t.deskripsi}</p>
             <div className="mt-3 grid grid-cols-2 gap-3 text-sm">
               <div><span className="text-slate-500 text-xs">Pelapor</span><div className="font-medium">{t.pelapor.nama}</div><div className="text-xs text-slate-500">{t.pelapor.hp}</div></div>
-              <div><span className="text-slate-500 text-xs">Alamat</span><div className="font-medium">{t.alamat || '—'}</div></div>
+              <div><span className="text-slate-500 text-xs">Alamat</span><div className="font-medium">{t.alamat || '—'}{t.rt && ` RT ${t.rt}`}{t.rw && ` RW ${t.rw}`}</div></div>
               <div><span className="text-slate-500 text-xs">Kanal</span><div className="font-medium">{t.kanal}</div></div>
               <div><span className="text-slate-500 text-xs">Tanggal Masuk</span><div className="font-medium">{fmtTanggal(t.tanggal_masuk)}</div></div>
               <div><span className="text-slate-500 text-xs">SLA Target</span><div className="font-medium">{fmtTanggal(t.sla_target)}</div></div>
-              <div><span className="text-slate-500 text-xs">Assignee</span><div className="font-medium">{t.assignee ? USERS.find(u=>u.id===t.assignee)?.nama : '—'}</div></div>
+              <div><span className="text-slate-500 text-xs">Assignee</span><div className="font-medium">{t.assignee ? (USERS.find(u=>u.id===t.assignee)?.nama || t.assignee) : '—'}</div></div>
             </div>
             {t.koordinat && (
               <div className="mt-3 p-2 bg-slate-50 rounded-lg text-xs flex items-center gap-2">

@@ -18,6 +18,19 @@ function App() {
   const [page, setPage] = useState('dashboard');
   const [selectedTicketId, setSelectedTicketId] = useState(null);
   const [showHelp, setShowHelp] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    try {
+      const data = await loadStore();
+      setStore(data);
+    } catch (e) {
+      console.error('Refresh failed:', e);
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
 
   useEffect(() => {
     loadStore().then(data => setStore(data));
@@ -41,21 +54,20 @@ function App() {
 
   const currentUser = USERS.find(u => u.id === store.currentUserId) || USERS[0];
 
-  const update = (mutator) => setStore(s => {
-    const n = JSON.parse(JSON.stringify(s));
+  const update = (mutator) => {
+    const n = JSON.parse(JSON.stringify(store));
     mutator(n);
 
     // Compare old state and new state to find modified tickets
     // This allows us to sync individual rows to Google Sheets
     const modifiedTickets = n.tickets.filter(newT => {
-      const oldT = s.tickets.find(x => x.id === newT.id);
-      return JSON.stringify(newT) !== JSON.stringify(oldT);
+      const oldT = store.tickets.find(x => x.id === newT.id);
+      return !oldT || JSON.stringify(newT) !== JSON.stringify(oldT);
     });
 
+    setStore(n);
     modifiedTickets.forEach(t => updateSingleTicket(t));
-
-    return n;
-  });
+  };
 
   const setUser = (id) => update(s => { s.currentUserId = id; });
   const resetData = () => { localStorage.removeItem('laporima_v2'); window.location.reload(); };
@@ -116,7 +128,16 @@ function App() {
 
         <main className="flex-1 p-4 md:p-6 pb-20 md:pb-6 overflow-x-hidden overflow-y-auto">
           {page === 'dashboard' && <Dashboard store={store} currentUser={currentUser} openTicket={openTicket} />}
-          {page === 'aduan' && <DaftarAduan store={store} update={update} currentUser={currentUser} openTicket={openTicket} />}
+          {page === 'aduan' && (
+            <DaftarAduan 
+              store={store} 
+              update={update} 
+              currentUser={currentUser} 
+              openTicket={openTicket} 
+              refresh={handleRefresh} 
+              isRefreshing={isRefreshing} 
+            />
+          )}
           {page === 'tugas' && <TugasSaya store={store} currentUser={currentUser} openTicket={openTicket} />}
           {page === 'baru' && <FormBaru store={store} update={update} currentUser={currentUser} onCreated={openTicket} />}
           {page === 'detail' && <DetailTiket store={store} update={update} ticketId={selectedTicketId} currentUser={currentUser} goBack={goBack} />}

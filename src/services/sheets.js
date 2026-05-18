@@ -9,7 +9,7 @@ const KEY = 'laporima_v2';
 // MAPPERS
 // ----------------------------------------------------
 
-function inferKategori(bantuanText) {
+export function inferKategori(bantuanText) {
   if (!bantuanText) return 'lain';
   const lower = bantuanText.toLowerCase();
 
@@ -58,7 +58,9 @@ function mapRowToTicket(row) {
     kategori: finalKategori,
     kecamatan: row.KECAMATAN || '',
     kelurahan: row.KELURAHAN || '',
-    alamat: `${row.ALAMAT || ''} RT ${row.RT || '-'} RW ${row.RW || '-'}`.trim(),
+    alamat: row.ALAMAT || '',
+    rt: row.RT || '',
+    rw: row.RW || '',
     pelapor: {
       nama: row.NAMA || 'Anonim',
       hp: row.TELP || ''
@@ -104,11 +106,13 @@ function mapTicketToRow(ticket) {
     NAMA: ticket.pelapor.nama,
     'SURAT MASUK': ticket.deskripsi,
     ALAMAT: ticket.alamat,
+    RT: ticket.rt || '',
+    RW: ticket.rw || '',
     KELURAHAN: ticket.kelurahan,
     KECAMATAN: ticket.kecamatan,
     TELP: ticket.pelapor.hp,
     BANTUAN: ticket.judul,
-    DINAS: ticket.assignee || '', // Assignee is mapped here if applicable, or left blank if it's an internal user ID
+    DINAS: ticket.assignee || '', 
     STATUS: ticket.status.toUpperCase(),
     EXTRA_DATA: JSON.stringify(extra)
   };
@@ -133,9 +137,17 @@ export const loadStore = async () => {
         return numB - numA;
       });
 
+      let maxNo = 0;
+      tickets.forEach(t => {
+        const no = parseInt(t.id.replace('t', ''), 10);
+        if (!isNaN(no) && no > maxNo) {
+          maxNo = no;
+        }
+      });
+
       return {
         tickets: tickets,
-        counter: tickets.length + 1,
+        counter: maxNo + 1,
         currentUserId: data.currentUserId || 'ima',
         botMessages: data.botMessages || []
       };

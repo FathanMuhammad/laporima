@@ -79,3 +79,17 @@ export const canSeePigura  = (peran) => ['owner','koordinator','admin_kantor','p
 
 export const fmtTanggal = (d) => new Date(d).toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'});
 export const fmtTanggalJam = (d) => new Date(d).toLocaleString('id-ID',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});
+
+export const DINAS_LIST = [
+  'Dinas Kesehatan',
+  'SDA',
+  'Dinas Sosial',
+  'LH',
+  'DUKCAKPIL',
+  'DISHUB',
+  'DISPORA',
+  'Pertamanan & Hutan Kota',
+  'Kebudayaan',
+  'BAZIS/BAZNAS',
+  'Binamarga'
+];

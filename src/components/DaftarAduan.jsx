@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { KECAMATAN, STATUS, STATUS_COLORS, fmtTanggal } from '../data/constants';
 
-function DaftarAduan({ store, update, currentUser, openTicket }) {
+function DaftarAduan({ store, update, currentUser, openTicket, refresh, isRefreshing }) {
   const defaultKec = (currentUser.peran === 'pic' || currentUser.peran === 'pj_kecamatan') ? currentUser.kecamatan : '';
   const [search, setSearch] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
@@ -54,7 +54,27 @@ function DaftarAduan({ store, update, currentUser, openTicket }) {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-slate-800">Daftar Aduan</h1>
-        <span className="text-sm text-slate-500">{filtered.length} dari {store.tickets.length} tiket</span>
+        <div className="flex items-center gap-2">
+          {refresh && (
+            <button 
+              onClick={refresh}
+              disabled={isRefreshing}
+              title="Refresh data dari Google Sheets"
+              className="p-1.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-600 rounded-lg shadow-sm active:scale-95 transition flex items-center justify-center disabled:opacity-50"
+            >
+              <svg 
+                className={`w-4 h-4 ${isRefreshing ? 'animate-spin text-rose-500' : 'text-slate-500 hover:text-slate-700'}`} 
+                fill="none" 
+                stroke="currentColor" 
+                strokeWidth="2"
+                viewBox="0 0 24 24"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 1121.21 7.89M9 11l3 3m0 0l3-3m-3 3V3" />
+              </svg>
+            </button>
+          )}
+          <span className="text-sm text-slate-500">{filtered.length} dari {store.tickets.length} tiket</span>
+        </div>
       </div>
 
       <div className="bg-white rounded-xl border border-slate-200 p-3 grid grid-cols-1 md:grid-cols-4 gap-3">
