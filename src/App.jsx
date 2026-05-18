@@ -23,8 +23,8 @@ function App() {
     loadStore().then(data => setStore(data));
   }, []);
 
-  useEffect(() => { 
-    if (store) saveStore(store); 
+  useEffect(() => {
+    if (store) saveStore(store);
   }, [store]);
 
   if (!store) {
@@ -44,16 +44,16 @@ function App() {
   const update = (mutator) => setStore(s => {
     const n = JSON.parse(JSON.stringify(s));
     mutator(n);
-    
+
     // Compare old state and new state to find modified tickets
     // This allows us to sync individual rows to Google Sheets
     const modifiedTickets = n.tickets.filter(newT => {
       const oldT = s.tickets.find(x => x.id === newT.id);
       return JSON.stringify(newT) !== JSON.stringify(oldT);
     });
-    
+
     modifiedTickets.forEach(t => updateSingleTicket(t));
-    
+
     return n;
   });
 
@@ -65,14 +65,14 @@ function App() {
 
   // Pages by role (RBAC)
   const allPages = [
-    { id:'dashboard', label:'Dashboard',       icon:'📊', roles:['*'] },
-    { id:'aduan',     label:'Daftar Aduan',    icon:'📋', roles:['*'] },
-    { id:'tugas',     label:'Tugas Saya',      icon:'✅', roles:['pic','pj_kecamatan','koordinator','lo_dinas','admin_kantor'] },
-    { id:'baru',      label:'Tiket Baru',      icon:'➕', roles:['admin_kantor','pic','pj_kecamatan','koordinator','lo_dinas'] },
-    { id:'sosmed',    label:'Antrian Sosmed',  icon:'📱', roles:['sosmed','koordinator','admin_kantor','owner','super_admin'] },
-    { id:'pigura',    label:'Antrian Pigura',  icon:'🖼️', roles:['pigura','koordinator','admin_kantor','owner','super_admin'] },
-    { id:'bot',       label:'Bot WA Simulator',icon:'🤖', roles:['admin_kantor','koordinator','owner','super_admin'] },
-    { id:'pengaturan',label:'Pengaturan',      icon:'⚙️', roles:['super_admin','koordinator','admin_kantor','owner'] },
+    { id: 'dashboard', label: 'Dashboard', icon: '📊', roles: ['*'] },
+    { id: 'aduan', label: 'Daftar Aduan', icon: '📋', roles: ['*'] },
+    { id: 'tugas', label: 'Tugas Saya', icon: '✅', roles: ['pic', 'pj_kecamatan', 'koordinator', 'lo_dinas', 'admin_kantor'] },
+    { id: 'baru', label: 'Tiket Baru', icon: '➕', roles: ['admin_kantor', 'pic', 'pj_kecamatan', 'koordinator', 'lo_dinas'] },
+    { id: 'sosmed', label: 'Antrian Sosmed', icon: '📱', roles: ['sosmed', 'koordinator', 'admin_kantor', 'owner', 'super_admin'] },
+    { id: 'pigura', label: 'Antrian Pigura', icon: '🖼️', roles: ['pigura', 'koordinator', 'admin_kantor', 'owner', 'super_admin'] },
+    { id: 'bot', label: 'Bot WA Simulator', icon: '🤖', roles: ['admin_kantor', 'koordinator', 'owner', 'super_admin'] },
+    { id: 'pengaturan', label: 'Pengaturan', icon: '⚙️', roles: ['super_admin', 'koordinator', 'admin_kantor', 'owner'] },
   ];
   const visiblePages = allPages.filter(p => p.roles.includes('*') || p.roles.includes(currentUser.peran));
 
@@ -106,7 +106,7 @@ function App() {
         </aside>
 
         <div className="md:hidden fixed bottom-0 left-0 right-0 z-30 bg-white border-t border-slate-200 flex overflow-x-auto">
-          {visiblePages.slice(0,5).map(p => (
+          {visiblePages.slice(0, 5).map(p => (
             <button key={p.id} onClick={() => { setPage(p.id); setSelectedTicketId(null); }}
               className={`flex-1 min-w-fit px-3 py-2 text-xs flex flex-col items-center gap-0.5 ${page === p.id ? 'text-rose-700' : 'text-slate-600'}`}>
               <span className="text-lg">{p.icon}</span>{p.label}
@@ -116,14 +116,14 @@ function App() {
 
         <main className="flex-1 p-4 md:p-6 pb-20 md:pb-6 overflow-x-hidden overflow-y-auto">
           {page === 'dashboard' && <Dashboard store={store} currentUser={currentUser} openTicket={openTicket} />}
-          {page === 'aduan'     && <DaftarAduan store={store} update={update} currentUser={currentUser} openTicket={openTicket} />}
-          {page === 'tugas'     && <TugasSaya store={store} currentUser={currentUser} openTicket={openTicket} />}
-          {page === 'baru'      && <FormBaru store={store} update={update} currentUser={currentUser} onCreated={openTicket} />}
-          {page === 'detail'    && <DetailTiket store={store} update={update} ticketId={selectedTicketId} currentUser={currentUser} goBack={goBack} />}
-          {page === 'sosmed'    && <AntrianSosmed store={store} update={update} currentUser={currentUser} openTicket={openTicket} />}
-          {page === 'pigura'    && <AntrianPigura store={store} update={update} currentUser={currentUser} openTicket={openTicket} />}
-          {page === 'bot'       && <BotSimulator store={store} update={update} currentUser={currentUser} openTicket={openTicket} />}
-          {page === 'pengaturan'&& <Pengaturan store={store} currentUser={currentUser} />}
+          {page === 'aduan' && <DaftarAduan store={store} update={update} currentUser={currentUser} openTicket={openTicket} />}
+          {page === 'tugas' && <TugasSaya store={store} currentUser={currentUser} openTicket={openTicket} />}
+          {page === 'baru' && <FormBaru store={store} update={update} currentUser={currentUser} onCreated={openTicket} />}
+          {page === 'detail' && <DetailTiket store={store} update={update} ticketId={selectedTicketId} currentUser={currentUser} goBack={goBack} />}
+          {page === 'sosmed' && <AntrianSosmed store={store} update={update} currentUser={currentUser} openTicket={openTicket} />}
+          {page === 'pigura' && <AntrianPigura store={store} update={update} currentUser={currentUser} openTicket={openTicket} />}
+          {page === 'bot' && <BotSimulator store={store} update={update} currentUser={currentUser} openTicket={openTicket} />}
+          {page === 'pengaturan' && <Pengaturan store={store} currentUser={currentUser} />}
         </main>
       </div>
 
@@ -131,7 +131,7 @@ function App() {
         <div className="bg-white rounded-xl shadow-xl w-full max-w-lg overflow-hidden">
           <div className="p-4 border-b flex justify-between items-center">
             <h3 className="font-bold">Panduan Prototype</h3>
-            <button onClick={()=>setShowHelp(false)}>❌</button>
+            <button onClick={() => setShowHelp(false)}>❌</button>
           </div>
           <div className="p-4 text-sm space-y-2">
             <p>1. Ganti user di pojok kanan atas untuk melihat view berbeda.</p>
