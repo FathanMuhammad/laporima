@@ -1,6 +1,6 @@
 import React from 'react';
-import { 
-  Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, ArcElement 
+import {
+  Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, ArcElement
 } from 'chart.js';
 import { Bar, Doughnut } from 'react-chartjs-2';
 import { KECAMATAN, KATEGORI, STATUS, STATUS_COLORS, PRIORITAS_COLORS, fmtTanggal, isOffice, canSeeSosmed, canSeePigura } from '../data/constants';
@@ -9,12 +9,12 @@ ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend,
 
 function Kpi({ label, value, sub, accent }) {
   const colorMap = {
-    rose:'border-rose-200 bg-rose-50 text-rose-700',
-    amber:'border-amber-200 bg-amber-50 text-amber-700',
-    emerald:'border-emerald-200 bg-emerald-50 text-emerald-700',
-    sky:'border-sky-200 bg-sky-50 text-sky-700',
-    pink:'border-pink-200 bg-pink-50 text-pink-700',
-    violet:'border-violet-200 bg-violet-50 text-violet-700',
+    rose: 'border-rose-200 bg-rose-50 text-rose-700',
+    amber: 'border-amber-200 bg-amber-50 text-amber-700',
+    emerald: 'border-emerald-200 bg-emerald-50 text-emerald-700',
+    sky: 'border-sky-200 bg-sky-50 text-sky-700',
+    pink: 'border-pink-200 bg-pink-50 text-pink-700',
+    violet: 'border-violet-200 bg-violet-50 text-violet-700',
   };
   return (
     <div className={`rounded-xl border p-4 ${colorMap[accent]}`}>
@@ -39,7 +39,7 @@ function Dashboard({ store, currentUser, openTicket }) {
     scoped = tickets.filter(t => t.kecamatan === currentUser.kecamatan);
     scopeLabel = ` · Area ${currentUser.kecamatan}`;
   } else if (currentUser.peran === 'lo_dinas') {
-    scoped = tickets.filter(t => t.status === 'Diteruskan ke Dinas' || (t.timeline||[]).some(a => a.user === 'joko'));
+    scoped = tickets.filter(t => t.status === 'Diteruskan ke Dinas' || (t.timeline || []).some(a => a.user === 'joko'));
     scopeLabel = ' · Tiket OPD';
   }
 
@@ -55,24 +55,24 @@ function Dashboard({ store, currentUser, openTicket }) {
   }).filter(t => t.sosmed);
 
   const sosmedPosted = sosmedTickets.filter(t => t.sosmed.status === 'posted').length;
-  const sosmedAntri  = sosmedTickets.filter(t => ['draft','review'].includes(t.sosmed.status)).length;
-  const piguraTotal  = scoped.filter(t => t.flag_pigura).length;
-  const piguraSerah  = scoped.filter(t => t.pigura && t.pigura.status === 'diserahkan').length;
+  const sosmedAntri = sosmedTickets.filter(t => ['draft', 'review'].includes(t.sosmed.status)).length;
+  const piguraTotal = scoped.filter(t => t.flag_pigura).length;
+  const piguraSerah = scoped.filter(t => t.pigura && t.pigura.status === 'diserahkan').length;
 
   const byKategori = KATEGORI.map(k => ({
     nama: k.nama, count: scoped.filter(t => t.kategori === k.id).length
-  })).filter(x => x.count > 0).sort((a,b) => b.count - a.count);
+  })).filter(x => x.count > 0).sort((a, b) => b.count - a.count);
 
   const byKecamatan = KECAMATAN.map(k => ({
     nama: k, count: scoped.filter(t => t.kecamatan === k).length,
     selesai: scoped.filter(t => t.kecamatan === k && t.status === 'SELESAI').length,
   }));
 
-  const recent = [...scoped].sort((a,b) => {
+  const recent = [...scoped].sort((a, b) => {
     const noA = parseInt(a.nomor.split('-')[1] || 0);
     const noB = parseInt(b.nomor.split('-')[1] || 0);
     return noB - noA;
-  }).slice(0,6);
+  }).slice(0, 6);
 
   const showSosmedKPI = canSeeSosmed(currentUser.peran);
   const showPiguraKPI = canSeePigura(currentUser.peran);
@@ -98,7 +98,7 @@ function Dashboard({ store, currentUser, openTicket }) {
       </div>
 
       <div className={`grid grid-cols-2 ${gridColsClass} gap-3`}>
-        <Kpi label="Masuk Bulan Ini" value={masukBulanIni} accent="rose" sub="aduan baru" />
+        <Kpi label="Masuk" value={masukBulanIni} accent="rose" sub="aduan baru" />
         <Kpi label="Sedang Ditangani" value={aktif} accent="amber" sub="dalam progres" />
         <Kpi label="Sudah Selesai" value={selesai} accent="emerald" sub="semua waktu" />
         {showSosmedKPI && <Kpi label="Konten Posted" value={sosmedPosted} accent="pink" sub={`${sosmedAntri} antri`} />}
@@ -108,38 +108,38 @@ function Dashboard({ store, currentUser, openTicket }) {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <div className="bg-white rounded-xl border border-slate-200 p-4">
           <h3 className="font-semibold mb-2 text-slate-800">Distribusi Status</h3>
-          <div style={{height:240}}>
-            <Doughnut 
-              data={{ labels: STATUS, datasets:[{ data: stats, backgroundColor:['#94a3b8','#3b82f6','#f59e0b','#fb923c','#10b981','#475569'] }] }}
-              options={{ plugins:{legend:{position:'bottom'}}, responsive:true, maintainAspectRatio:false }}
+          <div style={{ height: 240 }}>
+            <Doughnut
+              data={{ labels: STATUS, datasets: [{ data: stats, backgroundColor: ['#94a3b8', '#3b82f6', '#f59e0b', '#fb923c', '#10b981', '#475569'] }] }}
+              options={{ plugins: { legend: { position: 'bottom' } }, responsive: true, maintainAspectRatio: false }}
             />
           </div>
         </div>
         <div className="bg-white rounded-xl border border-slate-200 p-4">
           <h3 className="font-semibold mb-2 text-slate-800">Per Kategori</h3>
-          <div style={{height:240}}>
-            <Bar 
-              data={{ 
-                labels: byKategori.map(x=>x.nama.replace('Infrastruktur · ','').replace('Lingkungan · ','').replace('Kesehatan · ','').replace('Pendidikan · ','').replace('Adminduk · ','').replace('Sosial · ','')),
-                datasets:[{ data: byKategori.map(x=>x.count), backgroundColor:'#dc2626', borderRadius:6 }] 
+          <div style={{ height: 240 }}>
+            <Bar
+              data={{
+                labels: byKategori.map(x => x.nama.replace('Infrastruktur · ', '').replace('Lingkungan · ', '').replace('Kesehatan · ', '').replace('Pendidikan · ', '').replace('Adminduk · ', '').replace('Sosial · ', '')),
+                datasets: [{ data: byKategori.map(x => x.count), backgroundColor: '#dc2626', borderRadius: 6 }]
               }}
-              options={{ plugins:{legend:{display:false}}, responsive:true, maintainAspectRatio:false, indexAxis:'y' }}
+              options={{ plugins: { legend: { display: false } }, responsive: true, maintainAspectRatio: false, indexAxis: 'y' }}
             />
           </div>
         </div>
         {currentUser.peran !== 'pic' && currentUser.peran !== 'pj_kecamatan' && (
           <div className="bg-white rounded-xl border border-slate-200 p-4">
             <h3 className="font-semibold mb-2 text-slate-800">Sebaran Kecamatan</h3>
-            <div style={{height:240}}>
-              <Bar 
-                data={{ 
-                  labels: byKecamatan.map(x=>x.nama),
-                  datasets:[
-                    { label:'Aktif', data: byKecamatan.map(x=>x.count - x.selesai), backgroundColor:'#fb923c' },
-                    { label:'Selesai', data: byKecamatan.map(x=>x.selesai), backgroundColor:'#10b981' },
-                  ] 
+            <div style={{ height: 240 }}>
+              <Bar
+                data={{
+                  labels: byKecamatan.map(x => x.nama),
+                  datasets: [
+                    { label: 'Aktif', data: byKecamatan.map(x => x.count - x.selesai), backgroundColor: '#fb923c' },
+                    { label: 'Selesai', data: byKecamatan.map(x => x.selesai), backgroundColor: '#10b981' },
+                  ]
                 }}
-                options={{ plugins:{legend:{position:'bottom'}}, responsive:true, maintainAspectRatio:false, scales:{x:{stacked:true}, y:{stacked:true}} }}
+                options={{ plugins: { legend: { position: 'bottom' } }, responsive: true, maintainAspectRatio: false, scales: { x: { stacked: true }, y: { stacked: true } } }}
               />
             </div>
           </div>
