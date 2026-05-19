@@ -2,7 +2,7 @@
 
 Sistem Informasi Manajemen Pengaduan Terpadu untuk memfasilitasi pelaporan warga dan penugasan tim lapangan (Tim Ima Mahdiah · DPRD DKI Jakarta · Dapil 10). Aplikasi ini berfungsi untuk mencatat, melacak, dan mengelola aduan masyarakat dari awal masuk hingga selesai, termasuk pencatatan koordinat (check-in GPS), eskalasi ke dinas, hingga dokumentasi ke media sosial.
 
-## 🚀 Teknologi yang Digunakan
+## Teknologi yang Digunakan
 
 Proyek ini dibangun menggunakan ekosistem modern JavaScript dengan fokus pada kecepatan, kemudahan pengembangan, dan fungsionalitas.
 
@@ -17,7 +17,7 @@ Proyek ini dibangun menggunakan ekosistem modern JavaScript dengan fokus pada ke
 * **Google Apps Script (GAS)**: Digunakan sebagai backend/API serverless.
 * **Google Sheets**: Berfungsi sebagai *database* utama untuk menyimpan data tiket aduan (melalui API GAS).
 
-## 🌟 Fitur Utama
+## Fitur Utama
 
 * **Role-Based Access Control (RBAC)**: Tampilan dan hak akses disesuaikan berdasarkan peran pengguna (misal: Owner, Koordinator, PIC Lapangan, Admin Kantor, dll).
 * **Manajemen Tiket Aduan**: Pencatatan tiket aduan secara lengkap (pelapor, kategori, SLA, lokasi).
@@ -27,7 +27,7 @@ Proyek ini dibangun menggunakan ekosistem modern JavaScript dengan fokus pada ke
 * **Simpan ke Google Sheets**: Aplikasi terhubung secara sinkron dengan Google Sheets untuk persistensi data secara terpusat.
 * **Antrian Khusus (Sosmed & Pigura)**: Pengelolaan tindak lanjut pasca penyelesaian aduan seperti dokumentasi ke sosial media dan pembuatan pigura.
 
-## 🛠️ Cara Menjalankan Secara Lokal
+## Cara Menjalankan Secara Lokal
 
 1. Pastikan Anda telah menginstal [Node.js](https://nodejs.org/) di perangkat Anda.
 2. Clone atau unduh repositori ini.
@@ -46,7 +46,7 @@ Proyek ini dibangun menggunakan ekosistem modern JavaScript dengan fokus pada ke
    ```
 6. Buka URL yang tertera di terminal (biasanya `http://localhost:5173`) pada browser Anda.
 
-## 🗄️ Setup Database (Google Sheets)
+## Setup Database (Google Sheets)
 
 1. Buat Spreadsheet baru di Google Sheets.
 2. Gunakan script yang ada di dalam file `gas_script.js` lalu _deploy_ sebagai Web App di Google Apps Script (Extensions > Apps Script).
