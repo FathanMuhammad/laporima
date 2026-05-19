@@ -77,14 +77,14 @@ function App() {
 
   // Pages by role (RBAC)
   const allPages = [
-    { id: 'dashboard', label: 'Dashboard', icon: '📊', roles: ['*'] },
-    { id: 'aduan', label: 'Daftar Aduan', icon: '📋', roles: ['*'] },
-    { id: 'tugas', label: 'Tugas Saya', icon: '✅', roles: ['pic', 'pj_kecamatan', 'koordinator', 'lo_dinas', 'admin_kantor'] },
-    { id: 'baru', label: 'Tiket Baru', icon: '➕', roles: ['admin_kantor', 'pic', 'pj_kecamatan', 'koordinator', 'lo_dinas'] },
-    { id: 'sosmed', label: 'Antrian Sosmed', icon: '📱', roles: ['sosmed', 'koordinator', 'admin_kantor', 'owner', 'super_admin'] },
-    { id: 'pigura', label: 'Antrian Pigura', icon: '🖼️', roles: ['pigura', 'koordinator', 'admin_kantor', 'owner', 'super_admin'] },
-    { id: 'bot', label: 'Bot WA Simulator', icon: '🤖', roles: ['admin_kantor', 'koordinator', 'owner', 'super_admin'] },
-    { id: 'pengaturan', label: 'Pengaturan', icon: '⚙️', roles: ['super_admin', 'koordinator', 'admin_kantor', 'owner'] },
+    { id: 'dashboard', label: 'Dashboard', roles: ['*'] },
+    { id: 'aduan', label: 'Daftar Aduan', roles: ['*'] },
+    { id: 'tugas', label: 'Tugas Saya', roles: ['pic', 'pj_kecamatan', 'koordinator', 'lo_dinas', 'admin_kantor'] },
+    { id: 'baru', label: 'Tiket Baru', roles: ['admin_kantor', 'pic', 'pj_kecamatan', 'koordinator', 'lo_dinas'] },
+    { id: 'sosmed', label: 'Antrian Sosmed', roles: ['sosmed', 'koordinator', 'admin_kantor', 'owner', 'super_admin'] },
+    { id: 'pigura', label: 'Antrian Pigura', roles: ['pigura', 'koordinator', 'admin_kantor', 'owner', 'super_admin'] },
+    { id: 'bot', label: 'Bot WA Simulator', roles: ['admin_kantor', 'koordinator', 'owner', 'super_admin'] },
+    { id: 'pengaturan', label: 'Pengaturan', roles: ['super_admin', 'koordinator', 'admin_kantor', 'owner'] },
   ];
   const visiblePages = allPages.filter(p => p.roles.includes('*') || p.roles.includes(currentUser.peran));
 
@@ -129,13 +129,13 @@ function App() {
         <main className="flex-1 p-4 md:p-6 pb-20 md:pb-6 overflow-x-hidden overflow-y-auto">
           {page === 'dashboard' && <Dashboard store={store} currentUser={currentUser} openTicket={openTicket} />}
           {page === 'aduan' && (
-            <DaftarAduan 
-              store={store} 
-              update={update} 
-              currentUser={currentUser} 
-              openTicket={openTicket} 
-              refresh={handleRefresh} 
-              isRefreshing={isRefreshing} 
+            <DaftarAduan
+              store={store}
+              update={update}
+              currentUser={currentUser}
+              openTicket={openTicket}
+              refresh={handleRefresh}
+              isRefreshing={isRefreshing}
             />
           )}
           {page === 'tugas' && <TugasSaya store={store} currentUser={currentUser} openTicket={openTicket} />}
