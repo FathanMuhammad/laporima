@@ -12,8 +12,13 @@ function DetailTiket({ store, update, ticketId, currentUser, goBack }) {
       const tt = s.tickets.find(x => x.id === ticketId);
       tt.status = newStatus;
       if (!tt.timeline) tt.timeline = [];
-      tt.timeline.push({ id:`a-${Date.now()}`, tipe:'status_change', user:currentUser.id, desc:`${newStatus} — ${desc||''}`, ts:new Date().toISOString(), status:newStatus });
-      if (newStatus === 'SELESAI') tt.tanggal_selesai = new Date().toISOString();
+      const finalDesc = newStatus ? `${newStatus} — ${desc||''}` : 'Status dikosongkan';
+      tt.timeline.push({ id:`a-${Date.now()}`, tipe:'status_change', user:currentUser.id, desc:finalDesc, ts:new Date().toISOString(), status:newStatus });
+      if (newStatus === 'SELESAI') {
+        tt.tanggal_selesai = new Date().toISOString();
+      } else {
+        tt.tanggal_selesai = null;
+      }
     });
   };
 
@@ -105,7 +110,7 @@ function DetailTiket({ store, update, ticketId, currentUser, goBack }) {
           <div>
             <div className="flex items-center gap-2 mb-1 flex-wrap">
               <span className="text-sm font-mono text-slate-500">{t.nomor}</span>
-              <span className={`pill ${STATUS_COLORS[t.status]}`}>{t.status}</span>
+              <span className={`pill ${STATUS_COLORS[t.status] || 'bg-slate-100 text-slate-500'}`}>{t.status || 'KOSONG'}</span>
               <span className={`pill ${PRIORITAS_COLORS[t.prioritas]}`}>{t.prioritas}</span>
               {overSla && <span className="pill bg-rose-600 text-white">Lewat SLA</span>}
               {t.flag_pigura && <span className="pill bg-violet-100 text-violet-700">🖼️ Pigura</span>}
@@ -125,9 +130,10 @@ function DetailTiket({ store, update, ticketId, currentUser, goBack }) {
               <select 
                 value={t.status || ''}
                 onChange={e => updateStatus(e.target.value, 'Diubah via detail')}
-                className="px-3 py-1.5 border border-slate-200 rounded-lg text-sm font-medium bg-slate-50"
+                className="px-3 py-1.5 border border-slate-200 rounded-lg text-sm font-medium bg-white text-slate-700"
               >
-                <option value="" disabled>Ubah Status...</option>
+                <option value="" disabled hidden>Ubah Status...</option>
+                <option value="">- Kosongkan Status -</option>
                 {STATUS.map(s => <option key={s} value={s}>{s}</option>)}
               </select>
             )}

@@ -131,6 +131,7 @@ function FormBaru({ store, update, currentUser, onCreated }) {
               onChange={e => set('status', e.target.value)} 
               className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 bg-white transition-colors"
             >
+              <option value="">- Kosongkan -</option>
               {STATUS.map(s => <option key={s} value={s}>{s}</option>)}
             </select>
           </Field>

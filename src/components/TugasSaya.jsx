@@ -49,7 +49,7 @@ function TugasSaya({ store, currentUser, openTicket }) {
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-1 flex-wrap">
                   <span className="text-xs font-mono text-slate-500">{t.nomor}</span>
-                  <span className={`pill ${STATUS_COLORS[t.status]}`}>{t.status}</span>
+                  <span className={`pill ${STATUS_COLORS[t.status] || 'bg-slate-100 text-slate-500'}`}>{t.status || 'KOSONG'}</span>
                   <span className={`pill ${PRIORITAS_COLORS[t.prioritas]}`}>{t.prioritas}</span>
                   {t.assignee && <span className="pill bg-slate-100 text-slate-600">→ {USERS.find(u=>u.id===t.assignee)?.nama}</span>}
                 </div>
