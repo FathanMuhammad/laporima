@@ -1,7 +1,7 @@
 import { generateSampleData } from '../data/sampleData';
 
 // REPLACE THIS with your actual Google Apps Script Web App URL after deployment
-const GAS_URL = 'https://script.google.com/macros/s/AKfycbzsbcf4mvSfqal3wejZImDk3pcd32v-7RTBRpf2VEpcivs0vYhKwKbL37wTXdPZ2HiW/exec';
+const GAS_URL = import.meta.env.VITE_GAS_URL || '';
 
 const KEY = 'laporima_v2';
 
