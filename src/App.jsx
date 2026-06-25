@@ -130,6 +130,7 @@ function App() {
           {page === 'dashboard' && <Dashboard store={store} currentUser={currentUser} openTicket={openTicket} />}
           {page === 'aduan' && (
             <DaftarAduan
+              key={currentUser.id}
               store={store}
               update={update}
               currentUser={currentUser}
@@ -139,7 +140,7 @@ function App() {
             />
           )}
           {page === 'tugas' && <TugasSaya store={store} currentUser={currentUser} openTicket={openTicket} />}
-          {page === 'baru' && <FormBaru store={store} update={update} currentUser={currentUser} onCreated={openTicket} />}
+          {page === 'baru' && <FormBaru key={currentUser.id} store={store} update={update} currentUser={currentUser} onCreated={openTicket} />}
           {page === 'detail' && <DetailTiket store={store} update={update} ticketId={selectedTicketId} currentUser={currentUser} goBack={goBack} />}
           {page === 'sosmed' && <AntrianSosmed store={store} update={update} currentUser={currentUser} openTicket={openTicket} />}
           {page === 'pigura' && <AntrianPigura store={store} update={update} currentUser={currentUser} openTicket={openTicket} />}

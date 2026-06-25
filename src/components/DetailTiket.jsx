@@ -99,7 +99,7 @@ function DetailTiket({ store, update, ticketId, currentUser, goBack }) {
     });
   };
 
-  const canEdit = ['koordinator','pic','pj_kecamatan','admin_kantor','lo_dinas','super_admin'].includes(currentUser.peran);
+  const canEdit = ['pic','pj_kecamatan','admin_kantor','lo_dinas','super_admin'].includes(currentUser.peran);
   const sosmedVisible = canSeeSosmed(currentUser.peran);
 
   return (
@@ -119,7 +119,7 @@ function DetailTiket({ store, update, ticketId, currentUser, goBack }) {
             <div className="text-sm text-slate-600">{kat.nama} · {t.kecamatan} · {t.kelurahan}</div>
           </div>
           <div className="flex flex-wrap gap-2">
-            {canEdit && ['koordinator','admin_kantor','pj_kecamatan'].includes(currentUser.peran) && (
+            {canEdit && ['admin_kantor','pj_kecamatan'].includes(currentUser.peran) && (
               <select onChange={e => assignTo(e.target.value)} value="" className="px-3 py-1.5 border border-slate-200 rounded-lg text-sm">
                 <option value="" disabled>Tugaskan ke Dinas...</option>
                 {DINAS_LIST.map(d => <option key={d} value={d}>{d}</option>)}
@@ -141,7 +141,7 @@ function DetailTiket({ store, update, ticketId, currentUser, goBack }) {
             {(currentUser.peran === 'pic' || currentUser.peran === 'pj_kecamatan') && (
               <button onClick={checkIn} className="px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-sm">📍 Check-in GPS</button>
             )}
-            {['koordinator','admin_kantor','owner'].includes(currentUser.peran) && (
+            {['admin_kantor','owner'].includes(currentUser.peran) && (
               <button onClick={tandaiPigura} className={`px-3 py-1.5 ${t.flag_pigura?'bg-violet-100 text-violet-700':'bg-violet-600 hover:bg-violet-700 text-white'} rounded-lg text-sm`}>
                 🖼️ {t.flag_pigura ? 'Pigura: Ya' : 'Tandai Pigura'}
               </button>
@@ -230,7 +230,7 @@ function DetailTiket({ store, update, ticketId, currentUser, goBack }) {
               <div className="bg-white rounded-xl border border-slate-200 p-4">
                 <h3 className="font-semibold text-slate-800 mb-2 flex items-center gap-2">📱 Dokumentasi Sosmed</h3>
                 {!sosmedData ? (
-                  ['koordinator','sosmed','admin_kantor','owner'].includes(currentUser.peran) ? (
+                  ['sosmed','admin_kantor','owner'].includes(currentUser.peran) ? (
                     <button onClick={eskalasiSosmed} className="w-full py-1.5 bg-pink-600 hover:bg-pink-700 text-white rounded text-sm">Tambahkan ke Antrian Sosmed</button>
                   ) : (
                     <div className="text-xs text-slate-500 italic">Belum masuk antrian sosmed.</div>

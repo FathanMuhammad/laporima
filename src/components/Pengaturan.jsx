@@ -25,7 +25,7 @@ function Pengaturan({ store, currentUser }) {
           <div className="space-y-2 text-sm">
             <div className="p-2 bg-emerald-50 rounded">
               <div className="font-semibold text-emerald-700">Office Tier — Dashboard Penuh</div>
-              <div className="text-xs text-slate-600">Owner · Koordinator · Admin Kantor · Tim Medsos · Super Admin</div>
+              <div className="text-xs text-slate-600">Owner · Admin Kantor · Tim Medsos · Super Admin</div>
               <div className="text-xs text-slate-500 mt-1">Akses ke seluruh modul: aduan, poin, sosmed, pigura, pengaturan</div>
             </div>
             <div className="p-2 bg-indigo-50 rounded">

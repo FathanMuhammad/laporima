@@ -8,7 +8,7 @@ function BotSimulator({ store, update, currentUser, openTicket }) {
   const scrollRef = useRef(null);
 
   const messages = store.botMessages || [];
-  const senderUsers = USERS.filter(u => ['pic','pj_kecamatan','koordinator','admin_kantor','lo_dinas'].includes(u.peran));
+  const senderUsers = USERS.filter(u => ['pic','pj_kecamatan','admin_kantor','lo_dinas'].includes(u.peran));
   const sender = USERS.find(u => u.id === sendAs);
 
   useEffect(() => {
@@ -73,7 +73,7 @@ function BotSimulator({ store, update, currentUser, openTicket }) {
         s.tickets.unshift(newTiket);
         s.counter += 1;
         ticketCreated = newTiket;
-        replyBody = `✅ Aduan tercatat sebagai ${newTiket.nomor}\n\n📝 ${newTiket.judul}\n📍 ${newTiket.kelurahan}, ${newTiket.kecamatan}\n🏷️ Kategori: ${kat.nama}\n⚡ Prioritas: ${newTiket.prioritas}\n📊 Status: ${newTiket.status}\n📅 SLA: ${kat.sla} hari kerja\n\n${assignee ? 'Otomatis di-assign ke Anda sebagai PIC area. Silakan check-in di lokasi untuk dapat 5 poin.' : 'Akan di-triase Koordinator dalam waktu dekat.'}`;
+        replyBody = `✅ Aduan tercatat sebagai ${newTiket.nomor}\n\n📝 ${newTiket.judul}\n📍 ${newTiket.kelurahan}, ${newTiket.kecamatan}\n🏷️ Kategori: ${kat.nama}\n⚡ Prioritas: ${newTiket.prioritas}\n📊 Status: ${newTiket.status}\n📅 SLA: ${kat.sla} hari kerja\n\n${assignee ? 'Otomatis di-assign ke Anda sebagai PIC area. Silakan check-in di lokasi untuk dapat 5 poin.' : 'Akan di-triase Admin dalam waktu dekat.'}`;
       } else if (parsed.type === 'status_query') {
         const t = s.tickets.find(x => x.nomor === parsed.ticketNomor);
         if (t) {

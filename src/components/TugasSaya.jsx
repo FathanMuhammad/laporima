@@ -5,7 +5,7 @@ function TugasSaya({ store, currentUser, openTicket }) {
   const tickets = store.tickets.filter(t => {
     if (currentUser.peran === 'pic') return t.assignee === currentUser.id || (t.kecamatan === currentUser.kecamatan && t.status !== 'SELESAI');
     if (currentUser.peran === 'pj_kecamatan') return t.kecamatan === currentUser.kecamatan && t.status !== 'SELESAI';
-    if (currentUser.peran === 'koordinator' || currentUser.peran === 'admin_kantor') return ['SURAT MASUK', 'DISURVEY', ''].includes(t.status);
+    if (currentUser.peran === 'admin_kantor') return ['SURAT MASUK', 'DISURVEY', ''].includes(t.status);
     if (currentUser.peran === 'lo_dinas') return t.status === 'PENGERJAAN';
     return false;
   });
@@ -30,7 +30,6 @@ function TugasSaya({ store, currentUser, openTicket }) {
   const desc = {
     pic: `Tiket aktif di area ${currentUser.kecamatan}`,
     pj_kecamatan: `Tiket aktif di Kecamatan ${currentUser.kecamatan} yang Anda awasi`,
-    koordinator: 'Tiket yang menunggu triase atau penugasan',
     admin_kantor: 'Tiket yang menunggu triase atau penugasan',
     lo_dinas: 'Tiket yang sudah diteruskan ke OPD untuk follow-up',
   };

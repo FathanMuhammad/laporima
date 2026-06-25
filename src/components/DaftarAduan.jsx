@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { KECAMATAN, STATUS, STATUS_COLORS, fmtTanggal } from '../data/constants';
 
 function DaftarAduan({ store, update, currentUser, openTicket, refresh, isRefreshing }) {
@@ -8,6 +8,11 @@ function DaftarAduan({ store, update, currentUser, openTicket, refresh, isRefres
   const [filterKategori, setFilterKategori] = useState('');
   const [filterKec, setFilterKec] = useState(defaultKec);
   const [currentPage, setCurrentPage] = useState(1);
+
+  useEffect(() => {
+    setFilterKec(defaultKec);
+    setCurrentPage(1);
+  }, [currentUser, defaultKec]);
   const itemsPerPage = 100;
 
   const filtered = store.tickets.filter(t => {
