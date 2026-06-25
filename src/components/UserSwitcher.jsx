@@ -3,7 +3,7 @@ import { USERS, isOffice } from '../data/constants';
 
 function UserSwitcher({ currentUserId, setUser }) {
   const [open, setOpen] = useState(false);
-  const cu = USERS.find(u => u.id === currentUserId);
+  const cu = USERS.find(u => u.id === currentUserId) || USERS[0];
   const grouped = {
     'Office (Dashboard Penuh)':   USERS.filter(u => isOffice(u.peran)),
     'PJ Kecamatan (Field Only)':  USERS.filter(u => u.peran === 'pj_kecamatan'),

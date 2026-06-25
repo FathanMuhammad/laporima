@@ -42,5 +42,5 @@ export function generateSampleData() {
     };
   });
 
-  return { tickets, currentUserId: 'koor', counter: tickets.length + 1 };
+  return { tickets, currentUserId: 'rina', counter: tickets.length + 1 };
 }
