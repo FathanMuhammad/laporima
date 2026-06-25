@@ -111,7 +111,6 @@ function DaftarAduan({ store, update, currentUser, openTicket, refresh, isRefres
                 <div className="md:col-span-2 font-medium text-slate-800 truncate">{t.pelapor.nama}</div>
                 <div className="md:col-span-3">
                   <div className="font-medium text-slate-800 line-clamp-1">{t.judul}</div>
-                  <div className="text-xs text-slate-500">{t.kanal}</div>
                 </div>
                 <div className="md:col-span-2 text-sm text-slate-600">{t.kecamatan}<br /><span className="text-xs text-slate-500">{t.kelurahan}</span></div>
                 <div className="md:col-span-2 flex flex-col gap-1 items-start">
