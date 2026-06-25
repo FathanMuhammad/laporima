@@ -1,6 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { loadStore, saveStore, updateSingleTicket } from './services/sheets';
 import { USERS, isOffice, isField } from './data/constants';
+import { 
+  LayoutDashboard, 
+  ClipboardList, 
+  CheckSquare, 
+  PlusCircle, 
+  Share2, 
+  Image as ImageIcon, 
+  MessageSquare, 
+  Settings,
+  Menu
+} from 'lucide-react';
 
 import UserSwitcher from './components/UserSwitcher';
 import Dashboard from './components/Dashboard';
@@ -19,6 +30,7 @@ function App() {
   const [selectedTicketId, setSelectedTicketId] = useState(null);
   const [showHelp, setShowHelp] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [showMobileMenu, setShowMobileMenu] = useState(false);
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
@@ -77,14 +89,14 @@ function App() {
 
   // Pages by role (RBAC)
   const allPages = [
-    { id: 'dashboard', label: 'Dashboard', roles: ['*'] },
-    { id: 'aduan', label: 'Daftar Aduan', roles: ['*'] },
-    { id: 'tugas', label: 'Tugas Saya', roles: ['pic', 'pj_kecamatan', 'lo_dinas', 'admin_kantor'] },
-    { id: 'baru', label: 'Tiket Baru', roles: ['admin_kantor', 'pic', 'pj_kecamatan', 'lo_dinas'] },
-    { id: 'sosmed', label: 'Antrian Sosmed', roles: ['sosmed', 'admin_kantor', 'owner', 'super_admin'] },
-    { id: 'pigura', label: 'Antrian Pigura', roles: ['pigura', 'admin_kantor', 'owner', 'super_admin'] },
-    { id: 'bot', label: 'Bot WA Simulator', roles: ['admin_kantor', 'owner', 'super_admin'] },
-    { id: 'pengaturan', label: 'Pengaturan', roles: ['super_admin', 'admin_kantor', 'owner'] },
+    { id: 'dashboard', label: 'Dashboard', roles: ['*'], icon: <LayoutDashboard size={18} /> },
+    { id: 'aduan', label: 'Daftar Aduan', roles: ['*'], icon: <ClipboardList size={18} /> },
+    { id: 'tugas', label: 'Tugas Saya', roles: ['pic', 'pj_kecamatan', 'lo_dinas', 'admin_kantor'], icon: <CheckSquare size={18} /> },
+    { id: 'baru', label: 'Tiket Baru', roles: ['admin_kantor', 'pic', 'pj_kecamatan', 'lo_dinas'], icon: <PlusCircle size={18} /> },
+    { id: 'sosmed', label: 'Antrian Sosmed', roles: ['sosmed', 'admin_kantor', 'owner', 'super_admin'], icon: <Share2 size={18} /> },
+    { id: 'pigura', label: 'Antrian Pigura', roles: ['pigura', 'admin_kantor', 'owner', 'super_admin'], icon: <ImageIcon size={18} /> },
+    { id: 'bot', label: 'Bot WA Simulator', roles: ['admin_kantor', 'owner', 'super_admin'], icon: <MessageSquare size={18} /> },
+    { id: 'pengaturan', label: 'Pengaturan', roles: ['super_admin', 'admin_kantor', 'owner'], icon: <Settings size={18} /> },
   ];
   const visiblePages = allPages.filter(p => p.roles.includes('*') || p.roles.includes(currentUser.peran));
 
@@ -107,7 +119,7 @@ function App() {
             {visiblePages.map(p => (
               <button key={p.id} onClick={() => { setPage(p.id); setSelectedTicketId(null); }}
                 className={`w-full text-left px-3 py-2 rounded-lg flex items-center gap-2 text-sm transition ${page === p.id ? 'bg-rose-50 text-rose-700 font-semibold' : 'text-slate-700 hover:bg-slate-50'}`}>
-                <span>{p.icon}</span>{p.label}
+                <span className={`${page === p.id ? 'text-rose-600' : 'text-slate-400'}`}>{p.icon}</span>{p.label}
               </button>
             ))}
           </nav>
@@ -117,14 +129,74 @@ function App() {
           </div>
         </aside>
 
-        <div className="md:hidden fixed bottom-0 left-0 right-0 z-30 bg-white border-t border-slate-200 flex overflow-x-auto">
-          {visiblePages.slice(0, 5).map(p => (
-            <button key={p.id} onClick={() => { setPage(p.id); setSelectedTicketId(null); }}
-              className={`flex-1 min-w-fit px-3 py-2 text-xs flex flex-col items-center gap-0.5 ${page === p.id ? 'text-rose-700' : 'text-slate-600'}`}>
-              <span className="text-lg">{p.icon}</span>{p.label}
-            </button>
-          ))}
+        {/* Bottom Navigation Bar */}
+        <div className="md:hidden fixed bottom-0 left-0 right-0 z-30 bg-white/95 backdrop-blur-md border-t border-slate-200/80 flex items-stretch py-2 pb-5 px-1 shadow-[0_-4px_12px_rgba(0,0,0,0.04)] justify-around">
+          {(() => {
+            const limitMobile = visiblePages.length > 5;
+            const mobilePages = limitMobile ? visiblePages.slice(0, 4) : visiblePages;
+            const isDrawerPageActive = limitMobile && visiblePages.slice(4).some(p => p.id === page);
+
+            return (
+              <>
+                {mobilePages.map(p => (
+                  <button key={p.id} onClick={() => { setPage(p.id); setSelectedTicketId(null); setShowMobileMenu(false); }}
+                    className={`flex-1 min-w-[64px] max-w-[80px] flex flex-col items-center justify-center py-1 rounded-xl transition active:scale-95 ${page === p.id ? 'text-rose-600 font-semibold' : 'text-slate-500'}`}>
+                    <div className={`p-1.5 rounded-lg ${page === p.id ? 'text-rose-600 bg-rose-50' : 'text-slate-400'}`}>
+                      {p.icon ? React.cloneElement(p.icon, { size: 22 }) : null}
+                    </div>
+                    <span className="text-[10px] tracking-tight mt-0.5 whitespace-nowrap">{p.label}</span>
+                  </button>
+                ))}
+
+                {limitMobile && (
+                  <button 
+                    onClick={() => setShowMobileMenu(prev => !prev)}
+                    className={`flex-1 min-w-[64px] max-w-[80px] flex flex-col items-center justify-center py-1 rounded-xl transition active:scale-95 ${isDrawerPageActive ? 'text-rose-600 font-semibold' : 'text-slate-500'}`}
+                  >
+                    <div className={`p-1.5 rounded-lg ${isDrawerPageActive ? 'text-rose-600 bg-rose-50' : 'text-slate-400'}`}>
+                      <Menu size={22} />
+                    </div>
+                    <span className="text-[10px] tracking-tight mt-0.5 whitespace-nowrap">Lainnya</span>
+                  </button>
+                )}
+              </>
+            );
+          })()}
         </div>
+
+        {/* Mobile slide-up drawer menu for role-based extra pages */}
+        {showMobileMenu && visiblePages.length > 5 && (
+          <div className="md:hidden fixed inset-0 z-40 bg-black/40 backdrop-blur-sm flex items-end justify-center animate-fade-in" onClick={() => setShowMobileMenu(false)}>
+            <div className="bg-white rounded-t-2xl w-full max-w-md p-5 pb-8 space-y-4 shadow-2xl animate-slide-up" onClick={e => e.stopPropagation()}>
+              <div className="flex items-center justify-between border-b pb-2">
+                <h3 className="font-bold text-slate-800 text-sm">Menu Lainnya</h3>
+                <button onClick={() => setShowMobileMenu(false)} className="text-slate-400 hover:text-slate-600 p-1 text-sm">✕</button>
+              </div>
+              <div className="grid grid-cols-2 gap-3 py-2">
+                {visiblePages.slice(4).map(p => (
+                  <button
+                    key={p.id}
+                    onClick={() => {
+                      setPage(p.id);
+                      setSelectedTicketId(null);
+                      setShowMobileMenu(false);
+                    }}
+                    className={`flex flex-col items-center justify-center p-3 rounded-xl border transition active:scale-95 ${
+                      page === p.id 
+                        ? 'border-rose-200 bg-rose-50 text-rose-700 font-semibold' 
+                        : 'border-slate-100 bg-slate-50 hover:bg-slate-100 text-slate-700'
+                    }`}
+                  >
+                    <div className={`p-2 rounded-lg mb-1.5 ${page === p.id ? 'text-rose-600 bg-rose-50' : 'text-slate-500'}`}>
+                      {p.icon ? React.cloneElement(p.icon, { size: 24 }) : null}
+                    </div>
+                    <span className="text-xs text-center font-medium leading-tight">{p.label}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
 
         <main className="flex-1 p-4 md:p-6 pb-20 md:pb-6 overflow-x-hidden overflow-y-auto">
           {page === 'dashboard' && <Dashboard store={store} currentUser={currentUser} openTicket={openTicket} />}
