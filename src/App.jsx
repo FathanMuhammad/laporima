@@ -79,12 +79,12 @@ function App() {
   const allPages = [
     { id: 'dashboard', label: 'Dashboard', roles: ['*'] },
     { id: 'aduan', label: 'Daftar Aduan', roles: ['*'] },
-    { id: 'tugas', label: 'Tugas Saya', roles: ['pic', 'pj_kecamatan', 'koordinator', 'lo_dinas', 'admin_kantor'] },
-    { id: 'baru', label: 'Tiket Baru', roles: ['admin_kantor', 'pic', 'pj_kecamatan', 'koordinator', 'lo_dinas'] },
-    { id: 'sosmed', label: 'Antrian Sosmed', roles: ['sosmed', 'koordinator', 'admin_kantor', 'owner', 'super_admin'] },
-    { id: 'pigura', label: 'Antrian Pigura', roles: ['pigura', 'koordinator', 'admin_kantor', 'owner', 'super_admin'] },
-    { id: 'bot', label: 'Bot WA Simulator', roles: ['admin_kantor', 'koordinator', 'owner', 'super_admin'] },
-    { id: 'pengaturan', label: 'Pengaturan', roles: ['super_admin', 'koordinator', 'admin_kantor', 'owner'] },
+    { id: 'tugas', label: 'Tugas Saya', roles: ['pic', 'pj_kecamatan', 'lo_dinas', 'admin_kantor'] },
+    { id: 'baru', label: 'Tiket Baru', roles: ['admin_kantor', 'pic', 'pj_kecamatan', 'lo_dinas'] },
+    { id: 'sosmed', label: 'Antrian Sosmed', roles: ['sosmed', 'admin_kantor', 'owner', 'super_admin'] },
+    { id: 'pigura', label: 'Antrian Pigura', roles: ['pigura', 'admin_kantor', 'owner', 'super_admin'] },
+    { id: 'bot', label: 'Bot WA Simulator', roles: ['admin_kantor', 'owner', 'super_admin'] },
+    { id: 'pengaturan', label: 'Pengaturan', roles: ['super_admin', 'admin_kantor', 'owner'] },
   ];
   const visiblePages = allPages.filter(p => p.roles.includes('*') || p.roles.includes(currentUser.peran));
 

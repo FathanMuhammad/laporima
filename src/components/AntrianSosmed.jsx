@@ -89,7 +89,7 @@ function AntrianSosmed({ store, update, currentUser, openTicket }) {
           <h3 className="font-semibold text-sm mb-2 flex items-center gap-2">⏳ Menunggu Approval <span className="pill bg-amber-100 text-amber-700">{review.length}</span></h3>
           {review.length === 0 && <div className="text-xs text-slate-500 italic p-3 bg-white rounded-lg border border-dashed border-slate-200">Tidak ada yang menunggu.</div>}
           {review.map(t => <Card key={t.id} t={t} action={
-            ['koordinator','admin_kantor','owner'].includes(currentUser.peran) && (
+            ['admin_kantor','owner'].includes(currentUser.peran) && (
               <div className="flex gap-1 mt-2">
                 <button onClick={() => approve(t.id)} className="flex-1 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded text-xs">✓ Approve & Posting</button>
               </div>
