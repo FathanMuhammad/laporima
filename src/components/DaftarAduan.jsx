@@ -101,7 +101,7 @@ function DaftarAduan({ store, update, currentUser, openTicket, refresh, isRefres
           <div className="col-span-2">Status</div>
           <div className="col-span-2">Tanggal</div>
         </div>
-        <div className={`divide-y divide-slate-100 transition-all duration-300 ${isRefreshing ? 'opacity-40 pointer-events-none scale-[0.99] blur-[0.5px]' : 'opacity-100 scale-100'}`}>
+        <div className={`divide-y divide-slate-200 transition-all duration-300 ${isRefreshing ? 'opacity-40 pointer-events-none scale-[0.99] blur-[0.5px]' : 'opacity-100 scale-100'}`}>
           {paginatedTickets.length === 0 && <div className="p-8 text-center text-slate-500">Tidak ada tiket yang cocok dengan filter.</div>}
           {paginatedTickets.map(t => {
             const overSla = t.status !== 'SELESAI' && new Date(t.sla_target) < new Date();
@@ -115,18 +115,20 @@ function DaftarAduan({ store, update, currentUser, openTicket, refresh, isRefres
                 </div>
                 <div className="md:col-span-2 text-sm text-slate-600">{t.kecamatan}<br /><span className="text-xs text-slate-500">{t.kelurahan}</span></div>
                 <div className="md:col-span-2 flex flex-col gap-1 items-start">
-                  <span className={`pill ${STATUS_COLORS[t.status] || 'bg-slate-100 text-slate-500'}`}>{t.status || 'KOSONG'}</span>
-                  <select
-                    value={t.status || ''}
-                    onChange={(e) => handleStatusChange(e, t.id)}
-                    onClick={(e) => e.stopPropagation()}
-                    className="mt-1 text-xs px-2 py-1 border border-slate-200 rounded bg-white text-slate-700 font-medium"
-                  >
-                    <option value="" disabled hidden>Ubah...</option>
-                    <option value="">- Kosongkan -</option>
-                    {STATUS.map(s => <option key={s} value={s}>{s}</option>)}
-                  </select>
-                  {overSla && <span className="pill bg-rose-600 text-white mt-1">Lewat SLA</span>}
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <span className={`pill ${STATUS_COLORS[t.status] || 'bg-slate-100 text-slate-500'}`}>{t.status || 'KOSONG'}</span>
+                    <select
+                      value={t.status || ''}
+                      onChange={(e) => handleStatusChange(e, t.id)}
+                      onClick={(e) => e.stopPropagation()}
+                      className="text-[11px] px-1.5 py-0.5 border border-slate-200 rounded bg-white text-slate-700 font-medium cursor-pointer focus:outline-none"
+                    >
+                      <option value="" disabled hidden>Ubah</option>
+                      <option value="">- Kosongkan -</option>
+                      {STATUS.map(s => <option key={s} value={s}>{s}</option>)}
+                    </select>
+                  </div>
+                  {overSla && <span className="pill bg-rose-600 text-white mt-0.5">Lewat SLA</span>}
                 </div>
                 <div className="md:col-span-2 text-xs text-slate-500">{fmtTanggal(t.tanggal_masuk)}</div>
               </div>
