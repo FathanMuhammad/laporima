@@ -125,7 +125,21 @@ function mapTicketToRow(ticket) {
 export const loadStore = async () => {
   if (GAS_URL) {
     try {
-      const response = await fetch(`${GAS_URL}?action=get`);
+      // Add cache-busting timestamp to prevent Google Apps Script from returning cached data
+      const cacheBuster = `t=${Date.now()}&r=${Math.random().toString(36).slice(2)}`;
+      const separator = GAS_URL.includes('?') ? '&' : '?';
+      const response = await fetch(`${GAS_URL}${separator}action=get&${cacheBuster}`, {
+        cache: 'no-store',
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+        }
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      
       const data = await response.json();
 
       let tickets = (data.tickets || []).map(mapRowToTicket);
@@ -164,14 +178,25 @@ export const updateSingleTicket = async (ticket) => {
   if (GAS_URL) {
     try {
       const rowData = mapTicketToRow(ticket);
-      await fetch(`${GAS_URL}`, {
+      const response = await fetch(`${GAS_URL}`, {
         method: 'POST',
+        redirect: 'follow', // GAS redirects POST requests
         body: JSON.stringify({ action: 'update', ticket: rowData }),
         headers: {
           'Content-Type': 'text/plain;charset=utf-8',
         }
       });
-      console.log(`Successfully synced ticket ${ticket.id} to Google Sheets`);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      
+      const result = await response.json();
+      if (!result.success) {
+        console.error('Server returned error:', result.error);
+      } else {
+        console.log(`Successfully synced ticket ${ticket.id} to Google Sheets`);
+      }
     } catch (e) {
       console.error('Failed to update ticket to Google Sheets:', e);
     }

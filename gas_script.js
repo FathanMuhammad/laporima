@@ -9,11 +9,14 @@
  * 5. Run the "setupHeaders" function once (Select "setupHeaders" from the top dropdown, click Run).
  * 6. Click "Deploy" > "New deployment".
  *    - Select type: "Web app"
- *    - Description: "LaporIma API v2"
+ *    - Description: "LaporIma API v3"
  *    - Execute as: "Me"
  *    - Who has access: "Anyone"
  * 7. Click "Deploy".
  * 8. Copy "Web app URL" and paste to `src/services/sheets.js` (GAS_URL).
+ * 
+ * IMPORTANT: After pasting this code, you MUST create a NEW deployment 
+ * (not edit the existing one) for changes to take effect!
  */
 
 const SHEET_NAME = 'Sheet1'; // Change this if your sheet has a different name
@@ -25,7 +28,6 @@ const HEADERS = [
 
 function getSheet() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
-  // Try to find the active sheet, or fallback to the first sheet
   return ss.getSheetByName(SHEET_NAME) || ss.getSheets()[0];
 }
 
@@ -39,6 +41,12 @@ function setupHeaders() {
   }
 }
 
+// Helper: Create JSON response
+function jsonResponse(data) {
+  return ContentService.createTextOutput(JSON.stringify(data))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
 // Convert row array to object
 function rowToObject(row, headerMap) {
   const obj = {};
@@ -50,45 +58,71 @@ function rowToObject(row, headerMap) {
 
 // Handle GET request (Load Data)
 function doGet(e) {
-  const sheet = getSheet();
-  const lastRow = sheet.getLastRow();
-  const lastCol = sheet.getLastColumn();
-  
-  if (lastRow < 2) {
-    return ContentService.createTextOutput(JSON.stringify({ tickets: [] }))
-      .setMimeType(ContentService.MimeType.JSON);
+  try {
+    const sheet = getSheet();
+    const lastRow = sheet.getLastRow();
+    const lastCol = sheet.getLastColumn();
+    
+    if (lastRow < 2) {
+      return jsonResponse({ tickets: [], currentUserId: 'ima', botMessages: [] });
+    }
+
+    // Force fresh read from the sheet (not from Apps Script cache)
+    SpreadsheetApp.flush();
+    
+    const dataRange = sheet.getRange(1, 1, lastRow, lastCol).getValues();
+    const headers = dataRange[0];
+    const headerMap = {};
+    
+    headers.forEach((h, i) => {
+      const key = h.toString().trim().toUpperCase();
+      headerMap[key] = i;
+    });
+
+    const tickets = [];
+    for (let i = 1; i < dataRange.length; i++) {
+      if (!dataRange[i][headerMap['NO']]) continue; // Skip empty rows
+      tickets.push(rowToObject(dataRange[i], headerMap));
+    }
+
+    return jsonResponse({
+      tickets: tickets,
+      currentUserId: 'ima',
+      botMessages: [],
+      _ts: new Date().getTime() // Timestamp to verify freshness
+    });
+    
+  } catch (error) {
+    // Return error as JSON instead of HTML error page
+    return jsonResponse({
+      tickets: [],
+      currentUserId: 'ima',
+      botMessages: [],
+      error: error.toString()
+    });
   }
-
-  const dataRange = sheet.getRange(1, 1, lastRow, lastCol).getValues();
-  const headers = dataRange[0];
-  const headerMap = {};
-  
-  headers.forEach((h, i) => {
-    const key = h.toString().trim().toUpperCase();
-    headerMap[key] = i;
-  });
-
-  const tickets = [];
-  for (let i = 1; i < dataRange.length; i++) {
-    if (!dataRange[i][headerMap['NO']]) continue; // Skip empty rows
-    tickets.push(rowToObject(dataRange[i], headerMap));
-  }
-
-  // Return data
-  return ContentService.createTextOutput(JSON.stringify({
-    tickets: tickets,
-    currentUserId: 'ima', // Default for now
-    botMessages: []
-  })).setMimeType(ContentService.MimeType.JSON);
 }
 
 // Handle POST request (Save/Update Row)
 function doPost(e) {
+  // Use Lock Service to prevent race conditions when multiple 
+  // users update at the same time
+  const lock = LockService.getScriptLock();
+  
+  try {
+    // Wait up to 15 seconds to acquire the lock
+    lock.waitLock(15000);
+  } catch (lockError) {
+    return jsonResponse({ 
+      success: false, 
+      error: 'Server busy, please try again in a few seconds.' 
+    });
+  }
+  
   try {
     const payload = JSON.parse(e.postData.contents);
     const sheet = getSheet();
     
-    // We expect payload to be { action: 'update', ticket: { ...row data... } }
     if (payload.action === 'update' && payload.ticket) {
       const ticket = payload.ticket;
       const targetNo = ticket['NO'];
@@ -136,15 +170,20 @@ function doPost(e) {
         sheet.appendRow(rowData);
       }
       
-      return ContentService.createTextOutput(JSON.stringify({ success: true }))
-        .setMimeType(ContentService.MimeType.JSON);
+      // CRITICAL: Force all pending changes to be written to the sheet
+      // Without this, subsequent GET requests might return stale data
+      SpreadsheetApp.flush();
+      
+      return jsonResponse({ success: true, _ts: new Date().getTime() });
     }
     
-    return ContentService.createTextOutput(JSON.stringify({ success: false, error: 'Invalid action or payload' }))
-      .setMimeType(ContentService.MimeType.JSON);
+    return jsonResponse({ success: false, error: 'Invalid action or payload' });
+    
   } catch (error) {
-    return ContentService.createTextOutput(JSON.stringify({ success: false, error: error.toString() }))
-      .setMimeType(ContentService.MimeType.JSON);
+    return jsonResponse({ success: false, error: error.toString() });
+  } finally {
+    // Always release the lock, even if an error occurred
+    lock.releaseLock();
   }
 }
 

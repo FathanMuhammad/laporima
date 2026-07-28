@@ -46,6 +46,34 @@ function App() {
 
   useEffect(() => {
     loadStore().then(data => setStore(data));
+    
+    // Auto-refresh from Google Sheets every 30 seconds
+    const interval = setInterval(async () => {
+      try {
+        const data = await loadStore();
+        setStore(data);
+      } catch (e) {
+        console.warn('Auto-refresh failed:', e);
+      }
+    }, 30000);
+
+    // Also refresh when user returns to the tab
+    const handleVisibilityChange = async () => {
+      if (document.visibilityState === 'visible') {
+        try {
+          const data = await loadStore();
+          setStore(data);
+        } catch (e) {
+          console.warn('Visibility refresh failed:', e);
+        }
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
   }, []);
 
   useEffect(() => {
