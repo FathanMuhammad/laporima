@@ -128,13 +128,11 @@ export const loadStore = async () => {
       // Add cache-busting timestamp to prevent Google Apps Script from returning cached data
       const cacheBuster = `t=${Date.now()}&r=${Math.random().toString(36).slice(2)}`;
       const separator = GAS_URL.includes('?') ? '&' : '?';
-      const response = await fetch(`${GAS_URL}${separator}action=get&${cacheBuster}`, {
-        cache: 'no-store',
-        headers: {
-          'Cache-Control': 'no-cache, no-store, must-revalidate',
-          'Pragma': 'no-cache',
-        }
-      });
+      
+      // Removed custom headers (Cache-Control, Pragma) because they trigger 
+      // CORS preflight (OPTIONS) requests which Google Apps Script blocks.
+      // The cacheBuster URL parameter is enough to prevent caching.
+      const response = await fetch(`${GAS_URL}${separator}action=get&${cacheBuster}`);
       
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);

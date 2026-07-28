@@ -9,7 +9,7 @@
  * 5. Run the "setupHeaders" function once (Select "setupHeaders" from the top dropdown, click Run).
  * 6. Click "Deploy" > "New deployment".
  *    - Select type: "Web app"
- *    - Description: "LaporIma API v3"
+ *    - Description: "LaporIma API v4"
  *    - Execute as: "Me"
  *    - Who has access: "Anyone"
  * 7. Click "Deploy".
@@ -67,7 +67,6 @@ function doGet(e) {
       return jsonResponse({ tickets: [], currentUserId: 'ima', botMessages: [] });
     }
 
-    // Force fresh read from the sheet (not from Apps Script cache)
     SpreadsheetApp.flush();
     
     const dataRange = sheet.getRange(1, 1, lastRow, lastCol).getValues();
@@ -79,21 +78,49 @@ function doGet(e) {
       headerMap[key] = i;
     });
 
+    let sheetModified = false;
+    let maxNo = 0;
+    
+    // First pass: Find the highest NO currently in the sheet
+    for (let i = 1; i < dataRange.length; i++) {
+      const val = parseInt(dataRange[i][headerMap['NO']], 10);
+      if (!isNaN(val) && val > maxNo) {
+        maxNo = val;
+      }
+    }
+
     const tickets = [];
     for (let i = 1; i < dataRange.length; i++) {
-      if (!dataRange[i][headerMap['NO']]) continue; // Skip empty rows
+      // 1. If NAMA is completely empty, skip it (ignores pre-filled empty rows)
+      if (!dataRange[i][headerMap['NAMA']] || dataRange[i][headerMap['NAMA']].toString().trim() === '') {
+        continue;
+      }
+      
+      // 2. AUTO-HEAL: If NO is empty but NAMA exists (e.g. inserted by n8n)
+      if (!dataRange[i][headerMap['NO']]) {
+        maxNo++;
+        dataRange[i][headerMap['NO']] = maxNo;
+        // Instantly write the new NO back to the Google Sheet
+        sheet.getRange(i + 1, headerMap['NO'] + 1).setValue(maxNo);
+        sheetModified = true;
+      }
+      
       tickets.push(rowToObject(dataRange[i], headerMap));
+    }
+    
+    // If we auto-healed any rows, flush the changes to the sheet
+    if (sheetModified) {
+      SpreadsheetApp.flush();
     }
 
     return jsonResponse({
       tickets: tickets,
       currentUserId: 'ima',
       botMessages: [],
-      _ts: new Date().getTime() // Timestamp to verify freshness
+      _ts: new Date().getTime() 
     });
     
   } catch (error) {
-    // Return error as JSON instead of HTML error page
     return jsonResponse({
       tickets: [],
       currentUserId: 'ima',
@@ -105,18 +132,12 @@ function doGet(e) {
 
 // Handle POST request (Save/Update Row)
 function doPost(e) {
-  // Use Lock Service to prevent race conditions when multiple 
-  // users update at the same time
   const lock = LockService.getScriptLock();
   
   try {
-    // Wait up to 15 seconds to acquire the lock
     lock.waitLock(15000);
   } catch (lockError) {
-    return jsonResponse({ 
-      success: false, 
-      error: 'Server busy, please try again in a few seconds.' 
-    });
+    return jsonResponse({ success: false, error: 'Server busy' });
   }
   
   try {
@@ -135,7 +156,6 @@ function doPost(e) {
       let rowIndex = -1;
       let noColIndex = -1;
       
-      // Find headers mapping
       const headerMap = {};
       headers.forEach((h, i) => {
         const key = h.toString().trim().toUpperCase();
@@ -143,17 +163,14 @@ function doPost(e) {
         if (key === 'NO') noColIndex = i;
       });
 
-      // Find the row to update
       for (let i = 1; i < dataRange.length; i++) {
-        // loose equality to match number vs string
         if (dataRange[i][noColIndex] == targetNo) {
-          rowIndex = i + 1; // 1-indexed for Sheets
+          rowIndex = i + 1;
           break;
         }
       }
 
       if (rowIndex !== -1) {
-        // Update existing row
         const rowData = [];
         headers.forEach((h, i) => {
           const key = h.toString().trim().toUpperCase();
@@ -161,7 +178,6 @@ function doPost(e) {
         });
         sheet.getRange(rowIndex, 1, 1, headers.length).setValues([rowData]);
       } else {
-        // Insert new row
         const rowData = [];
         headers.forEach((h, i) => {
           const key = h.toString().trim().toUpperCase();
@@ -170,24 +186,18 @@ function doPost(e) {
         sheet.appendRow(rowData);
       }
       
-      // CRITICAL: Force all pending changes to be written to the sheet
-      // Without this, subsequent GET requests might return stale data
       SpreadsheetApp.flush();
-      
       return jsonResponse({ success: true, _ts: new Date().getTime() });
     }
     
-    return jsonResponse({ success: false, error: 'Invalid action or payload' });
-    
+    return jsonResponse({ success: false, error: 'Invalid action' });
   } catch (error) {
     return jsonResponse({ success: false, error: error.toString() });
   } finally {
-    // Always release the lock, even if an error occurred
     lock.releaseLock();
   }
 }
 
 function doOptions(e) {
-  return ContentService.createTextOutput('')
-    .setMimeType(ContentService.MimeType.TEXT);
+  return ContentService.createTextOutput('').setMimeType(ContentService.MimeType.TEXT);
 }
